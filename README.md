@@ -1,1 +1,1 @@
-# automatic_visual_inference
+An automatic visual inference system to evaluate lineups of residual plots. 
