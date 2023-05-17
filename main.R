@@ -44,6 +44,12 @@ rejected_plots <- null_lineup_p_values %>%
               summarise(plot_id = answer[1],
                         p_value = p_value[1]))
 
+poly_rejected_plots <- rejected_plots %>%
+  filter(grepl("poly", unique_lineup_id))
+
+heter_rejected_plots <- rejected_plots %>%
+  filter(grepl("heter", unique_lineup_id))
+
 # Find all plots that would not be rejected by the visual test
 # This includes all not rejected data plot,
 # and not rejected null plots from null lineups
@@ -55,6 +61,9 @@ not_rejected_plots <- null_lineup_p_values %>%
               group_by(unique_lineup_id) %>%
               summarise(plot_id = answer[1],
                         p_value = p_value[1]))
+
+poly_not_rejected_plots <- not_rejected_plots
+heter_not_rejected_plots <- not_rejected_plots
 
 # Draw all single plots
 draw_single_plots <- function(plots, folder = "reject") {
@@ -92,5 +101,34 @@ draw_single_plots <- function(plots, folder = "reject") {
   }
 }
 
-draw_single_plots(rejected_plots, folder = "reject")
-draw_single_plots(not_rejected_plots, folder = "not_reject")
+# Split data into training and testing
+set.seed(10086)
+poly_train_reject_ids <- sample(nrow(poly_rejected_plots),
+                                size = as.integer(0.8 * nrow(poly_rejected_plots)))
+poly_train_rejected_plots <- poly_rejected_plots[poly_train_reject_ids, ]
+poly_test_rejected_plots <- poly_rejected_plots[-poly_train_reject_ids, ]
+
+poly_train_not_reject_ids <- sample(nrow(poly_not_rejected_plots),
+                                    size = as.integer(0.8 * nrow(poly_not_rejected_plots)))
+poly_train_not_rejected_plots <- poly_not_rejected_plots[poly_train_not_reject_ids, ]
+poly_test_not_rejected_plots <- poly_not_rejected_plots[-poly_train_not_reject_ids, ]
+
+heter_train_reject_ids <- sample(nrow(heter_rejected_plots),
+                                 size = as.integer(0.8 * nrow(heter_rejected_plots)))
+heter_train_rejected_plots <- heter_rejected_plots[heter_train_reject_ids, ]
+heter_test_rejected_plots <- heter_rejected_plots[-heter_train_reject_ids, ]
+
+heter_train_not_reject_ids <- sample(nrow(heter_not_rejected_plots),
+                                     size = as.integer(0.8 * nrow(heter_not_rejected_plots)))
+heter_train_not_rejected_plots <- heter_not_rejected_plots[heter_train_not_reject_ids, ]
+heter_test_not_rejected_plots <- heter_not_rejected_plots[-heter_train_not_reject_ids, ]
+
+draw_single_plots(poly_train_rejected_plots, folder = "poly_train/reject")
+draw_single_plots(poly_test_rejected_plots, folder = "poly_test/reject")
+draw_single_plots(poly_train_not_rejected_plots, folder = "poly_train/not_reject")
+draw_single_plots(poly_test_not_rejected_plots, folder = "poly_test/not_reject")
+
+draw_single_plots(heter_train_rejected_plots, folder = "heter_train/reject")
+draw_single_plots(heter_test_rejected_plots, folder = "heter_test/reject")
+draw_single_plots(heter_train_not_rejected_plots, folder = "heter_train/not_reject")
+draw_single_plots(heter_test_not_rejected_plots, folder = "heter_test/not_reject")
