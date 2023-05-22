@@ -41,7 +41,7 @@ poly_performance <- poly_model$evaluate(poly_test_gen)
 poly_performance_on_heter <- poly_model$evaluate(heter_train_gen)
 
 heter_performance <- heter_model$evaluate(heter_test_gen)
-heter_performance_on_poly <- poly_model$evaluate(poly_train_gen)
+heter_performance_on_poly <- heter_model$evaluate(poly_train_gen)
 
 poly_pred <- poly_model$predict(poly_test_gen) %>%
   as.data.frame() %>%
