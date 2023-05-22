@@ -94,7 +94,7 @@ draw_single_plots <- function(plots, folder = "reject") {
     new_id <- new_id + 1
     
     # The lineup layout contains 4 rows and 5 cols
-    ggsave(glue::glue(here::here("data/single_plot/{folder}/{new_id}.png")), 
+    ggsave(glue::glue(here::here("data/single_plot_reject_or_not/{folder}/{new_id}.png")), 
            this_plot, 
            width = 7/5, 
            height = 7/4)
@@ -123,12 +123,27 @@ heter_train_not_reject_ids <- sample(nrow(heter_not_rejected_plots),
 heter_train_not_rejected_plots <- heter_not_rejected_plots[heter_train_not_reject_ids, ]
 heter_test_not_rejected_plots <- heter_not_rejected_plots[-heter_train_not_reject_ids, ]
 
-draw_single_plots(poly_train_rejected_plots, folder = "poly_train/reject")
-draw_single_plots(poly_test_rejected_plots, folder = "poly_test/reject")
-draw_single_plots(poly_train_not_rejected_plots, folder = "poly_train/not_reject")
-draw_single_plots(poly_test_not_rejected_plots, folder = "poly_test/not_reject")
+mixed_train_reject_ids <- sample(nrow(rejected_plots),
+                                 size = as.integer(0.8 * nrow(rejected_plots)))
+mixed_train_rejected_plots <- rejected_plots[mixed_train_reject_ids, ]
+mixed_test_rejected_plots <- rejected_plots[-mixed_train_reject_ids, ]
 
-draw_single_plots(heter_train_rejected_plots, folder = "heter_train/reject")
-draw_single_plots(heter_test_rejected_plots, folder = "heter_test/reject")
-draw_single_plots(heter_train_not_rejected_plots, folder = "heter_train/not_reject")
-draw_single_plots(heter_test_not_rejected_plots, folder = "heter_test/not_reject")
+mixed_train_not_rejected_ids <- sample(nrow(not_rejected_plots),
+                                       size = as.integer(0.8 * nrow(not_rejected_plots)))
+mixed_train_not_rejected_plots <- not_rejected_plots[mixed_train_not_rejected_ids, ]
+mixed_test_not_rejected_plots <- not_rejected_plots[-mixed_train_not_rejected_ids, ]
+
+draw_single_plots(poly_train_rejected_plots, folder = "poly/train/reject")
+draw_single_plots(poly_test_rejected_plots, folder = "poly/test/reject")
+draw_single_plots(poly_train_not_rejected_plots, folder = "poly/train/not_reject")
+draw_single_plots(poly_test_not_rejected_plots, folder = "poly/test/not_reject")
+
+draw_single_plots(heter_train_rejected_plots, folder = "heter/train/reject")
+draw_single_plots(heter_test_rejected_plots, folder = "heter/test/reject")
+draw_single_plots(heter_train_not_rejected_plots, folder = "heter/train/not_reject")
+draw_single_plots(heter_test_not_rejected_plots, folder = "heter/test/not_reject")
+
+draw_single_plots(mixed_train_rejected_plots, folder = "mixed/train/reject")
+draw_single_plots(mixed_test_rejected_plots, folder = "mixed/test/reject")
+draw_single_plots(mixed_train_not_rejected_plots, folder = "mixed/train/not_reject")
+draw_single_plots(mixed_test_not_rejected_plots, folder = "mixed/test/not_reject")

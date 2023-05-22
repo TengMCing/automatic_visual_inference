@@ -8,3 +8,5 @@ data/shared/
 data/single_plot/
 
 .DS_Store
+
+data/single_plot_reject_or_not/
