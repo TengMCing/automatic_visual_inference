@@ -355,7 +355,7 @@ keras_api$model$mobile_net_v3_small <- function(include_top = TRUE,
 #' less efficient on CPU, they are much more performant on GPU/DSP.
 #' @param dropout_rate Double. Dropout rate of the top layer.
 #' @param include_preprocessing Boolean. Whether to include the preprocessing
-#' layer at the bottomt of the network.
+#' layer at the bottom of the network.
 #' @return A Keras model.
 keras_api$model$mobile_net_v3_large <- function(include_top = TRUE,
                                                 weights = "imagenet", 
@@ -400,6 +400,9 @@ keras_api$model$mobile_net_v3_large <- function(include_top = TRUE,
 #' @param classifier_activation Character. The activation function of the
 #' top layer. Ignored unless `include = TRUE`.
 #' @param drop_connect_rate Double. Dropout rate at skip connections.
+#' @param depth_divisor Integer. A unit of network width.
+#' @param activation Character. Activation function of the network.
+#' @param block_args Character. Parameters to construct block modules.
 #' @return A Keras model.
 keras_api$model$effcient_net_b0 <- function(include_top = TRUE,
                                             weights = "imagenet", 
@@ -425,6 +428,31 @@ keras_api$model$effcient_net_b0 <- function(include_top = TRUE,
                                     block_args = block_args)
 }
 
+
+#' Init a Keras model.
+#' 
+#' Applications "effcient_net_b0" - "effcient_net_b7" share the same APIs. 
+#' 
+#' @param include_top Boolean. Whether to include the layers at the top of the 
+#' network for classification.
+#' @param weights Character. One of `reticulate::py_none()` (random 
+#' initialization), "imagenet" (pre-training on ImageNet), or the path to the
+#' weights file to loaded.
+#' @param input_tensor Keras tensor. Output of `layer_input()`. 
+#' @param input_shape Integer. Length 3 integer vector indicating the input 
+#' shape.
+#' @param pooling Character. One of `reticulate::py_none()` (4D tensor output
+#' of the last convolutional block), "avg" (apply global average pooling to 
+#' get 2D tensor), "max" (apply global max pooling to get 2D tensor).
+#' @param classes Integer. Number of classes (output nodes). Ignored unless
+#' `include_top = TRUE`.
+#' @param classifier_activation Character. The activation function of the
+#' top layer. Ignored unless `include = TRUE`.
+#' @param drop_connect_rate Double. Dropout rate at skip connections.
+#' @param depth_divisor Integer. A unit of network width.
+#' @param activation Character. Activation function of the network.
+#' @param block_args Character. Parameters to construct block modules.
+#' @return A Keras model.
 (function() {
   register_models <- paste0("EffcientNetB", 1:7)
   names(register_models) <- paste0("effcient_net_b", 1:7)
@@ -441,6 +469,27 @@ keras_api$model$effcient_net_b0 <- function(include_top = TRUE,
   }
 })()
 
+
+#' Init a EffcientNetV2B0 model.
+#' 
+#' @param include_top Boolean. Whether to include the layers at the top of the 
+#' network for classification.
+#' @param weights Character. One of `reticulate::py_none()` (random 
+#' initialization), "imagenet" (pre-training on ImageNet), or the path to the
+#' weights file to loaded.
+#' @param input_tensor Keras tensor. Output of `layer_input()`. 
+#' @param input_shape Integer. Length 3 integer vector indicating the input 
+#' shape.
+#' @param pooling Character. One of `reticulate::py_none()` (4D tensor output
+#' of the last convolutional block), "avg" (apply global average pooling to 
+#' get 2D tensor), "max" (apply global max pooling to get 2D tensor).
+#' @param classes Integer. Number of classes (output nodes). Ignored unless
+#' `include_top = TRUE`.
+#' @param classifier_activation Character. The activation function of the
+#' top layer. Ignored unless `include = TRUE`.
+#' @param include_preprocessing Boolean. Whether to include the preprocessing
+#' layer at the bottom of the network.
+#' @return A Keras model.
 keras_api$model$effcient_net_v2_b0 <- function(include_top = TRUE,
                                                weights = "imagenet", 
                                                input_tensor = reticulate::py_none(), 
@@ -459,6 +508,31 @@ keras_api$model$effcient_net_v2_b0 <- function(include_top = TRUE,
                                       include_preprocessing = include_preprocessing)
 }
 
+#' Init a Keras model.
+#' 
+#' Applications "effcient_net_v2_b0" - "effcient_net_v2_b3", 
+#' "effcient_net_v2_s", "effcient_net_v2_m", "effcient_net_v2_l",
+#' "conv_next_tiny", "conv_next_small", "conv_next_base", "conv_next_large" and 
+#' "conv_next_xlarge" share the same APIs.
+#' 
+#' @param include_top Boolean. Whether to include the layers at the top of the 
+#' network for classification.
+#' @param weights Character. One of `reticulate::py_none()` (random 
+#' initialization), "imagenet" (pre-training on ImageNet), or the path to the
+#' weights file to loaded.
+#' @param input_tensor Keras tensor. Output of `layer_input()`. 
+#' @param input_shape Integer. Length 3 integer vector indicating the input 
+#' shape.
+#' @param pooling Character. One of `reticulate::py_none()` (4D tensor output
+#' of the last convolutional block), "avg" (apply global average pooling to 
+#' get 2D tensor), "max" (apply global max pooling to get 2D tensor).
+#' @param classes Integer. Number of classes (output nodes). Ignored unless
+#' `include_top = TRUE`.
+#' @param classifier_activation Character. The activation function of the
+#' top layer. Ignored unless `include = TRUE`.
+#' @param include_preprocessing Boolean. Whether to include the preprocessing
+#' layer at the bottom of the network.
+#' @return A Keras model.
 (function() {
   register_models <- paste0("EffcientNetV2", c("B1", "B2", "B3", "S", "M", "L"))
   names(register_models) <- paste0("effcient_net_v2_", c("b1", "b2", "b3", "s", "m", "l"))
@@ -491,11 +565,54 @@ keras_api$model$effcient_net_v2_b0 <- function(include_top = TRUE,
   }
 })()
 
+
+# init_model --------------------------------------------------------------
+
+#' Init a Keras model
+#' 
+#' @param model_name Character. One of available Keras applications.
+#' @param ... Arguments passed to the init function.
+#' @return A keras model.
 keras_api$init_model <- function(model_name = "vgg16", ...) {
   if (is.null(keras_api$model[[model_name]])) stop("Unmatched model name {model_name}!")
   keras_api$model[[model_name]](...)
 }
 
+
+# flow_images_from_directory ----------------------------------------------
+
+#' Init an image generator 
+#' 
+#' @param directory Character. Path to images. The directory should contain 
+#' one folder for each class.
+#' @param model_name Character. One of available Keras applications.
+#' @param generator Object. Output of `image_data_generator()`.
+#' @param target_size Integer. Length 3 vector indicating the input shape.
+#' @param color_mode Character. Color mode of the image.
+#' @param classes Character. Could be `reticulate::py_none()` (class labels 
+#' inferred from the subdirectory), or a length 2 vector indicating the class 
+#' names.
+#' @param class_mode Character. One of "categorical", "binary", "spare", 
+#' "input" or `reticulate::py_none()`.
+#' @param batch_size Integer. Batch size.
+#' @param shuffle Boolean. Wether to shuffle the images.
+#' @param seed Integer. Seed for shuffling.
+#' @param save_to_dir Character. Path to save augmented images.
+#' @param save_prefix Character. Prefix of saved images.
+#' @param save_format Character. Format of saved images. One of "png", "jpeg", 
+#' "bmp", "pdf", "ppm", "gif", "tif", "jpg".
+#' @param follow_links Boolean. Whether to follow symlinks inside 
+#' class subdirectories.
+#' @param interpolation Character. Interpolation method used to resize image.
+#' One of "nearest", "bilinear", "bicubic". Optionally supported "lanzcos" if
+#' `reticulate::py_run_string("import PIL; print(PIL.__version__)") > "1.1.3"`. 
+#' Optionally supported "box" and "hamming" if 
+#' `reticulate::py_run_string("import PIL; print(PIL.__version__)") > "3.4.0"`.
+#' @param keep_aspect_ratio Boolean. Whether to resize images to a target size 
+#' without aspect ratio distortion. The image is cropped in the center with 
+#' target aspect ratio before resizing.
+#' @return A list containing the training images generator and validation images
+#' generator. 
 keras_api$flow_images_from_directory <- function(directory,
                                                  model_name = "vgg16",
                                                  generator = image_data_generator(validation_split = 0.2),
@@ -548,6 +665,14 @@ keras_api$flow_images_from_directory <- function(directory,
 }
 
 
+# preprocess_input --------------------------------------------------------
+
+#' Preprocess the input before feeding into Keras applications.
+#' 
+#' @param x Keras tensor. The input.
+#' @param data_format Character. Either "channel_first" or "channel_last".
+#' @param model_name Character. One of aviailable Keras applications.
+#' @return A keras tensor.
 keras_api$preprocess_input <- function(x, data_format = reticulate::py_none(), model_name = "vgg16") {
   c("effcient_net_b0" = "efficientnet",
     "effcient_net_b1" = "efficientnet",
@@ -591,6 +716,11 @@ keras_api$preprocess_input <- function(x, data_format = reticulate::py_none(), m
     "conv_next_xlarge" = "convnext")[model_name] -> module_name
   return(keras$applications[[module_name]](x, data_format = data_format))
 }
+
+
+
+# fit_model ---------------------------------------------------------------
+
 
 keras_api$fit_model <- function(base_model = keras_api$init_model(),
                                 directory = NULL,
