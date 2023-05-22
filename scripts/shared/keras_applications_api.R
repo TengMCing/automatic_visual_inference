@@ -12,21 +12,21 @@ keras_api <- new.env(parent = .GlobalEnv)
 # model_name --------------------------------------------------------------
 
 #' All available Keras applications
-keras_api$model_name <- c("effcient_net_b0",
-                          "effcient_net_b1", 
-                          "effcient_net_b2",
-                          "effcient_net_b3",
-                          "effcient_net_b4",
-                          "effcient_net_b5",
-                          "effcient_net_b6",
-                          "effcient_net_b7",
-                          "effcient_net_v2_b0",
-                          "effcient_net_v2_b1",
-                          "effcient_net_v2_b2",
-                          "effcient_net_v2_b3",
-                          "effcient_net_v2_s",
-                          "effcient_net_v2_m",
-                          "effcient_net_v2_l",
+keras_api$model_name <- c("efficient_net_b0",
+                          "efficient_net_b1", 
+                          "efficient_net_b2",
+                          "efficient_net_b3",
+                          "efficient_net_b4",
+                          "efficient_net_b5",
+                          "efficient_net_b6",
+                          "efficient_net_b7",
+                          "efficient_net_v2_b0",
+                          "efficient_net_v2_b1",
+                          "efficient_net_v2_b2",
+                          "efficient_net_v2_b3",
+                          "efficient_net_v2_s",
+                          "efficient_net_v2_m",
+                          "efficient_net_v2_l",
                           "xception",
                           "vgg16",
                           "vgg19",
@@ -61,21 +61,21 @@ keras_api$model_name <- c("effcient_net_b0",
 #' @param model_name Character. A model name.
 #' @return A length 3 vector containing the input shape.
 keras_api$get_input_shape <- function(model_name = "vgg16") {
-  c("effcient_net_b0" = 224L,
-    "effcient_net_b1" = 240L,
-    "effcient_net_b2" = 260L,
-    "effcient_net_b3" = 300L,
-    "effcient_net_b4" = 380L,
-    "effcient_net_b5" = 456L,
-    "effcient_net_b6" = 528L,
-    "effcient_net_b7" = 600L,
-    "effcient_net_v2_b0" = 224L,
-    "effcient_net_v2_b1" = 240L,
-    "effcient_net_v2_b2" = 260L,
-    "effcient_net_v2_b3" = 300L,
-    "effcient_net_v2_s" = 384L,
-    "effcient_net_v2_m" = 480L,
-    "effcient_net_v2_l" = 480L,
+  c("efficient_net_b0" = 224L,
+    "efficient_net_b1" = 240L,
+    "efficient_net_b2" = 260L,
+    "efficient_net_b3" = 300L,
+    "efficient_net_b4" = 380L,
+    "efficient_net_b5" = 456L,
+    "efficient_net_b6" = 528L,
+    "efficient_net_b7" = 600L,
+    "efficient_net_v2_b0" = 224L,
+    "efficient_net_v2_b1" = 240L,
+    "efficient_net_v2_b2" = 260L,
+    "efficient_net_v2_b3" = 300L,
+    "efficient_net_v2_s" = 384L,
+    "efficient_net_v2_m" = 480L,
+    "efficient_net_v2_l" = 480L,
     "xception" = 299L,
     "vgg16" = 224L,
     "vgg19" = 224L,
@@ -382,7 +382,7 @@ keras_api$model$mobile_net_v3_large <- function(include_top = TRUE,
 }
 
 
-#' Init a EffcientNetB0 model.
+#' Init a EfficientNetB0 model.
 #' 
 #' @param include_top Boolean. Whether to include the layers at the top of the 
 #' network for classification.
@@ -402,19 +402,19 @@ keras_api$model$mobile_net_v3_large <- function(include_top = TRUE,
 #' @param drop_connect_rate Double. Dropout rate at skip connections.
 #' @param depth_divisor Integer. A unit of network width.
 #' @param activation Character. Activation function of the network.
-#' @param block_args Character. Parameters to construct block modules.
+#' @param blocks_args Character. Parameters to construct block modules.
 #' @return A Keras model.
-keras_api$model$effcient_net_b0 <- function(include_top = TRUE,
-                                            weights = "imagenet", 
-                                            input_tensor = reticulate::py_none(), 
-                                            input_shape = reticulate::py_none(), 
-                                            pooling = reticulate::py_none(), 
-                                            classes = 1000L, 
-                                            classifier_activation = "softmax",
-                                            drop_connect_rate = 0.2,
-                                            depth_divisor = 8L,
-                                            activation = "swish",
-                                            block_args = "default") {
+keras_api$model$efficient_net_b0 <- function(include_top = TRUE,
+                                             weights = "imagenet", 
+                                             input_tensor = reticulate::py_none(), 
+                                             input_shape = reticulate::py_none(), 
+                                             pooling = reticulate::py_none(), 
+                                             classes = 1000L, 
+                                             classifier_activation = "softmax",
+                                             drop_connect_rate = 0.2,
+                                             depth_divisor = 8L,
+                                             activation = "swish",
+                                             blocks_args = "default") {
   keras$applications$EfficientNetB0(include_top = include_top,
                                     weights = weights, 
                                     input_tensor = input_tensor, 
@@ -425,13 +425,13 @@ keras_api$model$effcient_net_b0 <- function(include_top = TRUE,
                                     drop_connect_rate = drop_connect_rate,
                                     depth_divisor = depth_divisor,
                                     activation = activation,
-                                    block_args = block_args)
+                                    blocks_args = blocks_args)
 }
 
 
 #' Init a Keras model.
 #' 
-#' Applications "effcient_net_b0" - "effcient_net_b7" share the same APIs. 
+#' Applications "efficient_net_b0" - "efficient_net_b7" share the same APIs. 
 #' 
 #' @param include_top Boolean. Whether to include the layers at the top of the 
 #' network for classification.
@@ -454,15 +454,15 @@ keras_api$model$effcient_net_b0 <- function(include_top = TRUE,
 #' @param block_args Character. Parameters to construct block modules.
 #' @return A Keras model.
 (function() {
-  register_models <- paste0("EffcientNetB", 1:7)
-  names(register_models) <- paste0("effcient_net_b", 1:7)
+  register_models <- paste0("EfficientNetB", 1:7)
+  names(register_models) <- paste0("efficient_net_b", 1:7)
   
   for (this_model in names(register_models)) {
     keras_api$model[[this_model]] <- function(...) NULL
-    formals(keras_api$model[[this_model]]) <- formals(keras_api$model$effcient_net_b0)
+    formals(keras_api$model[[this_model]]) <- formals(keras_api$model$efficient_net_b0)
     
-    fn_args <- map(names(formals(keras_api$model$effcient_net_b0)), ~as.symbol(.x))
-    names(fn_args) <- names(formals(keras_api$model$effcient_net_b0))
+    fn_args <- map(names(formals(keras_api$model$efficient_net_b0)), ~as.symbol(.x))
+    names(fn_args) <- names(formals(keras_api$model$efficient_net_b0))
     fn_name <- register_models[this_model]
     
     body(keras_api$model[[this_model]]) <- substitute({do.call(keras$applications$fn_name, fn_args)})
@@ -470,7 +470,7 @@ keras_api$model$effcient_net_b0 <- function(include_top = TRUE,
 })()
 
 
-#' Init a EffcientNetV2B0 model.
+#' Init a EfficientNetV2B0 model.
 #' 
 #' @param include_top Boolean. Whether to include the layers at the top of the 
 #' network for classification.
@@ -490,14 +490,14 @@ keras_api$model$effcient_net_b0 <- function(include_top = TRUE,
 #' @param include_preprocessing Boolean. Whether to include the preprocessing
 #' layer at the bottom of the network.
 #' @return A Keras model.
-keras_api$model$effcient_net_v2_b0 <- function(include_top = TRUE,
-                                               weights = "imagenet", 
-                                               input_tensor = reticulate::py_none(), 
-                                               input_shape = reticulate::py_none(), 
-                                               pooling = reticulate::py_none(), 
-                                               classes = 1000L, 
-                                               classifier_activation = "softmax",
-                                               include_preprocessing = TRUE) {
+keras_api$model$efficient_net_v2_b0 <- function(include_top = TRUE,
+                                                weights = "imagenet", 
+                                                input_tensor = reticulate::py_none(), 
+                                                input_shape = reticulate::py_none(), 
+                                                pooling = reticulate::py_none(), 
+                                                classes = 1000L, 
+                                                classifier_activation = "softmax",
+                                                include_preprocessing = TRUE) {
   keras$applications$EfficientNetV2B0(include_top = include_top,
                                       weights = weights,
                                       input_tensor = input_tensor,
@@ -510,8 +510,8 @@ keras_api$model$effcient_net_v2_b0 <- function(include_top = TRUE,
 
 #' Init a Keras model.
 #' 
-#' Applications "effcient_net_v2_b0" - "effcient_net_v2_b3", 
-#' "effcient_net_v2_s", "effcient_net_v2_m", "effcient_net_v2_l",
+#' Applications "efficient_net_v2_b0" - "efficient_net_v2_b3", 
+#' "efficient_net_v2_s", "efficient_net_v2_m", "efficient_net_v2_l",
 #' "conv_next_tiny", "conv_next_small", "conv_next_base", "conv_next_large" and 
 #' "conv_next_xlarge" share the same APIs.
 #' 
@@ -534,15 +534,15 @@ keras_api$model$effcient_net_v2_b0 <- function(include_top = TRUE,
 #' layer at the bottom of the network.
 #' @return A Keras model.
 (function() {
-  register_models <- paste0("EffcientNetV2", c("B1", "B2", "B3", "S", "M", "L"))
-  names(register_models) <- paste0("effcient_net_v2_", c("b1", "b2", "b3", "s", "m", "l"))
+  register_models <- paste0("EfficientNetV2", c("B1", "B2", "B3", "S", "M", "L"))
+  names(register_models) <- paste0("efficient_net_v2_", c("b1", "b2", "b3", "s", "m", "l"))
   
   for (this_model in names(register_models)) {
     keras_api$model[[this_model]] <- function(...) NULL
-    formals(keras_api$model[[this_model]]) <- formals(keras_api$model$effcient_net_v2_b0)
+    formals(keras_api$model[[this_model]]) <- formals(keras_api$model$efficient_net_v2_b0)
     
-    fn_args <- map(names(formals(keras_api$model$effcient_net_v2_b0)), ~as.symbol(.x))
-    names(fn_args) <- names(formals(keras_api$model$effcient_net_v2_b0))
+    fn_args <- map(names(formals(keras_api$model$efficient_net_v2_b0)), ~as.symbol(.x))
+    names(fn_args) <- names(formals(keras_api$model$efficient_net_v2_b0))
     fn_name <- register_models[this_model]
     
     body(keras_api$model[[this_model]]) <- substitute({do.call(keras$applications$fn_name, fn_args)})
@@ -555,10 +555,10 @@ keras_api$model$effcient_net_v2_b0 <- function(include_top = TRUE,
   
   for (this_model in names(register_models)) {
     keras_api$model[[this_model]] <- function(...) NULL
-    formals(keras_api$model[[this_model]]) <- formals(keras_api$model$effcient_net_v2_b0)
+    formals(keras_api$model[[this_model]]) <- formals(keras_api$model$efficient_net_v2_b0)
     
-    fn_args <- map(names(formals(keras_api$model$effcient_net_v2_b0)), ~as.symbol(.x))
-    names(fn_args) <- names(formals(keras_api$model$effcient_net_v2_b0))
+    fn_args <- map(names(formals(keras_api$model$efficient_net_v2_b0)), ~as.symbol(.x))
+    names(fn_args) <- names(formals(keras_api$model$efficient_net_v2_b0))
     fn_name <- register_models[this_model]
     
     body(keras_api$model[[this_model]]) <- substitute({do.call(keras$applications$fn_name, fn_args)})
@@ -574,7 +574,7 @@ keras_api$model$effcient_net_v2_b0 <- function(include_top = TRUE,
 #' @param ... Arguments passed to the init function.
 #' @return A keras model.
 keras_api$init_model <- function(model_name = "vgg16", ...) {
-  if (is.null(keras_api$model[[model_name]])) stop("Unmatched model name {model_name}!")
+  if (is.null(keras_api$model[[model_name]])) stop(glue::glue("Unmatched model name {model_name}!"))
   keras_api$model[[model_name]](...)
 }
 
@@ -674,21 +674,21 @@ keras_api$flow_images_from_directory <- function(directory,
 #' @param model_name Character. One of aviailable Keras applications.
 #' @return A keras tensor.
 keras_api$preprocess_input <- function(x, data_format = reticulate::py_none(), model_name = "vgg16") {
-  c("effcient_net_b0" = "efficientnet",
-    "effcient_net_b1" = "efficientnet",
-    "effcient_net_b2" = "efficientnet",
-    "effcient_net_b3" = "efficientnet",
-    "effcient_net_b4" = "efficientnet",
-    "effcient_net_b5" = "efficientnet",
-    "effcient_net_b6" = "efficientnet",
-    "effcient_net_b7" = "efficientnet",
-    "effcient_net_v2_b0" = "efficientnet_v2",
-    "effcient_net_v2_b1" = "efficientnet_v2",
-    "effcient_net_v2_b2" = "efficientnet_v2",
-    "effcient_net_v2_b3" = "efficientnet_v2",
-    "effcient_net_v2_s" = "efficientnet_v2",
-    "effcient_net_v2_m" = "efficientnet_v2",
-    "effcient_net_v2_l" = "efficientnet_v2",
+  c("efficient_net_b0" = "efficientnet",
+    "efficient_net_b1" = "efficientnet",
+    "efficient_net_b2" = "efficientnet",
+    "efficient_net_b3" = "efficientnet",
+    "efficient_net_b4" = "efficientnet",
+    "efficient_net_b5" = "efficientnet",
+    "efficient_net_b6" = "efficientnet",
+    "efficient_net_b7" = "efficientnet",
+    "efficient_net_v2_b0" = "efficientnet_v2",
+    "efficient_net_v2_b1" = "efficientnet_v2",
+    "efficient_net_v2_b2" = "efficientnet_v2",
+    "efficient_net_v2_b3" = "efficientnet_v2",
+    "efficient_net_v2_s" = "efficientnet_v2",
+    "efficient_net_v2_m" = "efficientnet_v2",
+    "efficient_net_v2_l" = "efficientnet_v2",
     "xception" = "xception",
     "vgg16" = "vgg16",
     "vgg19" = "vgg19",
@@ -714,7 +714,7 @@ keras_api$preprocess_input <- function(x, data_format = reticulate::py_none(), m
     "conv_next_base" = "convnext",
     "conv_next_large" = "convnext",
     "conv_next_xlarge" = "convnext")[model_name] -> module_name
-  return(keras$applications[[module_name]](x, data_format = data_format))
+  return(keras$applications[[module_name]]$preprocess_input(x, data_format = data_format))
 }
 
 
