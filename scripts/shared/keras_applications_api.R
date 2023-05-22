@@ -718,28 +718,3 @@ keras_api$preprocess_input <- function(x, data_format = reticulate::py_none(), m
 }
 
 
-
-# fit_model ---------------------------------------------------------------
-
-
-keras_api$fit_model <- function(base_model = keras_api$init_model(),
-                                directory = NULL,
-                                data = keras_api$flow_images_from_directory(directory),
-                                dense_nodes = c(256),
-                                dropout_rate = 0.2,
-                                batch_normalization = TRUE,
-                                activation = "relu",
-                                output_nodes = 2,
-                                optimizer = optimizer_adam(),
-                                loss = loss_categorical_crossentropy(),
-                                metrics = metric_categorical_accuracy(),
-                                callbacks = callback_early_stopping(patience = 10L),
-                                transfer_learning = FALSE) {
-  
-  if (!transfer_learning) base_model$trainable <- FALSE
-  
-  
-  
-  
-  
-}
