@@ -2,8 +2,16 @@ library(tensorflow)
 library(keras)
 library(tidyverse)
 
+
+# keras_api ---------------------------------------------------------------
+
+#' This is a wrapper of the Keras APIs.
 keras_api <- new.env(parent = .GlobalEnv)
 
+
+# model_name --------------------------------------------------------------
+
+#' All available Keras applications
 keras_api$model_name <- c("effcient_net_b0",
                           "effcient_net_b1", 
                           "effcient_net_b2",
@@ -45,6 +53,13 @@ keras_api$model_name <- c("effcient_net_b0",
                           "conv_next_large",
                           "conv_next_xlarge")
 
+
+# get_input_shape ---------------------------------------------------------
+
+#' Get the default input shape of a Keras application
+#' 
+#' @param model_name Character. A model name.
+#' @return A length 3 vector containing the input shape.
 keras_api$get_input_shape <- function(model_name = "vgg16") {
   c("effcient_net_b0" = 224L,
     "effcient_net_b1" = 240L,
@@ -87,9 +102,30 @@ keras_api$get_input_shape <- function(model_name = "vgg16") {
     "conv_next_large" = 224L,
     "conv_next_xlarge" = 224L)[model_name] -> input_shape
   if (is.na(input_shape)) stop(glue::glue("Unmatched model name {model_name}!"))
-  return(unname(c(input_shape, input_shape)))
+  return(unname(c(input_shape, input_shape, 3)))
 }
 
+
+# model -------------------------------------------------------------------
+
+#' Init a Xception model.
+#' 
+#' @param include_top Boolean. Whether to include the layers at the top of the 
+#' network for classification.
+#' @param weights Character. One of `reticulate::py_none()` (random 
+#' initialization), "imagenet" (pre-training on ImageNet), or the path to the
+#' weights file to loaded.
+#' @param input_tensor Keras tensor. Output of `layer_input()`. 
+#' @param input_shape Integer. Length 3 integer vector indicating the input 
+#' shape.
+#' @param pooling Character. One of `reticulate::py_none()` (4D tensor output
+#' of the last convolutional block), "avg" (apply global average pooling to 
+#' get 2D tensor), "max" (apply global max pooling to get 2D tensor).
+#' @param classes Integer. Number of classes (output nodes). Ignored unless
+#' `include_top = TRUE`.
+#' @param classifier_activation Character. The activation function of the
+#' top layer. Ignored unless `include = TRUE`.
+#' @return A Keras model.
 keras_api$model$xception <- function(include_top = TRUE, 
                                      weights = "imagenet", 
                                      input_tensor = reticulate::py_none(), 
@@ -106,6 +142,29 @@ keras_api$model$xception <- function(include_top = TRUE,
                               classifier_activation = classifier_activation)
 }
 
+#' Init a Keras model.
+#' 
+#' Applications "vgg16", "vgg19", "resnet_50", "resnet_101", "resnet_152", 
+#' "resnet_50_v2", "resnet_101_v2", "resnet_152_v2", "inception_v3",
+#' "inception_resnet_v2", "dense_net_121", "dense_net_169", "dense_net_201",
+#' "nas_net_mobile", "nas_net_large" share the same APIs as "xception".
+#' 
+#' @param include_top Boolean. Whether to include the layers at the top of the 
+#' network for classification.
+#' @param weights Character. One of `reticulate::py_none()` (random 
+#' initialization), "imagenet" (pre-training on ImageNet), or the path to the
+#' weights file to loaded.
+#' @param input_tensor Keras tensor. Output of `layer_input()`. 
+#' @param input_shape Integer. Length 3 integer vector indicating the input 
+#' shape.
+#' @param pooling Character. One of `reticulate::py_none()` (4D tensor output
+#' of the last convolutional block), "avg" (apply global average pooling to 
+#' get 2D tensor), "max" (apply global max pooling to get 2D tensor).
+#' @param classes Integer. Number of classes (output nodes). Ignored unless
+#' `include_top = TRUE`.
+#' @param classifier_activation Character. The activation function of the
+#' top layer. Ignored unless `include = TRUE`.
+#' @return A Keras model.
 (function() {
   register_models <- c("vgg16" = "VGG16", 
                        "vgg19" = "VGG19", 
@@ -121,8 +180,7 @@ keras_api$model$xception <- function(include_top = TRUE,
                        "dense_net_169" = "DenseNet169",
                        "dense_net_201" = "DenseNet201",
                        "nas_net_mobile" = "NASNetMobile",
-                       "nas_net_large" = "NASNetLarge"
-                       )
+                       "nas_net_large" = "NASNetLarge")
   for (this_model in names(register_models)) {
     keras_api$model[[this_model]] <- function(...) NULL
     formals(keras_api$model[[this_model]]) <- formals(keras_api$model$xception)
@@ -135,6 +193,30 @@ keras_api$model$xception <- function(include_top = TRUE,
   }
 })()
 
+#' Init a MobileNet model.
+#' 
+#' @param include_top Boolean. Whether to include the layers at the top of the 
+#' network for classification.
+#' @param weights Character. One of `reticulate::py_none()` (random 
+#' initialization), "imagenet" (pre-training on ImageNet), or the path to the
+#' weights file to loaded.
+#' @param input_tensor Keras tensor. Output of `layer_input()`. 
+#' @param input_shape Integer. Length 3 integer vector indicating the input 
+#' shape.
+#' @param pooling Character. One of `reticulate::py_none()` (4D tensor output
+#' of the last convolutional block), "avg" (apply global average pooling to 
+#' get 2D tensor), "max" (apply global max pooling to get 2D tensor).
+#' @param classes Integer. Number of classes (output nodes). Ignored unless
+#' `include_top = TRUE`.
+#' @param classifier_activation Character. The activation function of the
+#' top layer. Ignored unless `include = TRUE`.
+#' @param alpha Double. Width multiplier in the MobileNet paper. 
+#' If `alpha < 1.0`, number of filters will be decreased proportionally 
+#' in each layer. If `alpha > 1.0`, number of filters will be increased 
+#' proportionally in each layer.
+#' @param depth_multiplier Double. Resolution multiplier in the MobileNet paper.
+#' @param dropout Double. Dropout rate of the top layer.
+#' @return A Keras model.
 keras_api$model$mobile_net <- function(include_top = TRUE,
                                        weights = "imagenet", 
                                        input_tensor = reticulate::py_none(), 
@@ -157,6 +239,27 @@ keras_api$model$mobile_net <- function(include_top = TRUE,
                                dropout = dropout)
 }
 
+#' Init a MobileNetV2 model.
+#' 
+#' @param include_top Boolean. Whether to include the layers at the top of the 
+#' network for classification.
+#' @param weights Character. One of `reticulate::py_none()` (random 
+#' initialization), "imagenet" (pre-training on ImageNet), or the path to the
+#' weights file to loaded.
+#' @param input_tensor Keras tensor. Output of `layer_input()`. 
+#' @param input_shape Integer. Length 3 integer vector indicating the input 
+#' shape.
+#' @param pooling Character. One of `reticulate::py_none()` (4D tensor output
+#' of the last convolutional block), "avg" (apply global average pooling to 
+#' get 2D tensor), "max" (apply global max pooling to get 2D tensor).
+#' @param classes Integer. Number of classes (output nodes). Ignored unless
+#' `include_top = TRUE`.
+#' @param classifier_activation Character. The activation function of the
+#' top layer. Ignored unless `include = TRUE`.
+#' @param alpha Double. Width multiplier in the MobileNet paper. 
+#' If `alpha < 1.0`, number of filters will be decreased proportionally 
+#' in each layer. If `alpha > 1.0`, number of filters will be increased 
+#' proportionally in each layer.
 keras_api$model$mobile_net_v2 <- function(include_top = TRUE,
                                           weights = "imagenet", 
                                           input_tensor = reticulate::py_none(), 
@@ -175,6 +278,33 @@ keras_api$model$mobile_net_v2 <- function(include_top = TRUE,
                                  alpha = alpha)
 }
 
+#' Init a MobileNetV3Small model.
+#' 
+#' @param include_top Boolean. Whether to include the layers at the top of the 
+#' network for classification.
+#' @param weights Character. One of `reticulate::py_none()` (random 
+#' initialization), "imagenet" (pre-training on ImageNet), or the path to the
+#' weights file to loaded.
+#' @param input_tensor Keras tensor. Output of `layer_input()`. 
+#' @param input_shape Integer. Length 3 integer vector indicating the input 
+#' shape.
+#' @param pooling Character. One of `reticulate::py_none()` (4D tensor output
+#' of the last convolutional block), "avg" (apply global average pooling to 
+#' get 2D tensor), "max" (apply global max pooling to get 2D tensor).
+#' @param classes Integer. Number of classes (output nodes). Ignored unless
+#' `include_top = TRUE`.
+#' @param classifier_activation Character. The activation function of the
+#' top layer. Ignored unless `include = TRUE`.
+#' @param alpha Double. Width multiplier in the MobileNet paper. 
+#' If `alpha < 1.0`, number of filters will be decreased proportionally 
+#' in each layer. If `alpha > 1.0`, number of filters will be increased 
+#' proportionally in each layer.
+#' @param minimalistic Boolean. Use minimalistic models. While these models are 
+#' less efficient on CPU, they are much more performant on GPU/DSP.
+#' @param dropout_rate Double. Dropout rate of the top layer.
+#' @param include_preprocessing Boolean. Whether to include the preprocessing
+#' layer at the bottomt of the network.
+#' @return A Keras model.
 keras_api$model$mobile_net_v3_small <- function(include_top = TRUE,
                                        weights = "imagenet", 
                                        input_tensor = reticulate::py_none(), 
@@ -184,7 +314,6 @@ keras_api$model$mobile_net_v3_small <- function(include_top = TRUE,
                                        classifier_activation = "softmax",
                                        alpha = 1.0,
                                        minimalistic = FALSE,
-                                       depth_multiplier = 1L,
                                        dropout_rate = 0.2,
                                        include_preprocessing = TRUE) {
   keras$applications$MobileNetV3Small(include_top = include_top,
@@ -200,6 +329,34 @@ keras_api$model$mobile_net_v3_small <- function(include_top = TRUE,
                                       include_preprocessing = include_preprocessing)
 }
 
+
+#' Init a MobileNetV3Large model.
+#' 
+#' @param include_top Boolean. Whether to include the layers at the top of the 
+#' network for classification.
+#' @param weights Character. One of `reticulate::py_none()` (random 
+#' initialization), "imagenet" (pre-training on ImageNet), or the path to the
+#' weights file to loaded.
+#' @param input_tensor Keras tensor. Output of `layer_input()`. 
+#' @param input_shape Integer. Length 3 integer vector indicating the input 
+#' shape.
+#' @param pooling Character. One of `reticulate::py_none()` (4D tensor output
+#' of the last convolutional block), "avg" (apply global average pooling to 
+#' get 2D tensor), "max" (apply global max pooling to get 2D tensor).
+#' @param classes Integer. Number of classes (output nodes). Ignored unless
+#' `include_top = TRUE`.
+#' @param classifier_activation Character. The activation function of the
+#' top layer. Ignored unless `include = TRUE`.
+#' @param alpha Double. Width multiplier in the MobileNet paper. 
+#' If `alpha < 1.0`, number of filters will be decreased proportionally 
+#' in each layer. If `alpha > 1.0`, number of filters will be increased 
+#' proportionally in each layer.
+#' @param minimalistic Boolean. Use minimalistic models. While these models are 
+#' less efficient on CPU, they are much more performant on GPU/DSP.
+#' @param dropout_rate Double. Dropout rate of the top layer.
+#' @param include_preprocessing Boolean. Whether to include the preprocessing
+#' layer at the bottomt of the network.
+#' @return A Keras model.
 keras_api$model$mobile_net_v3_large <- function(include_top = TRUE,
                                                 weights = "imagenet", 
                                                 input_tensor = reticulate::py_none(), 
@@ -209,7 +366,6 @@ keras_api$model$mobile_net_v3_large <- function(include_top = TRUE,
                                                 classifier_activation = "softmax",
                                                 alpha = 1.0,
                                                 minimalistic = FALSE,
-                                                depth_multiplier = 1L,
                                                 dropout_rate = 0.2,
                                                 include_preprocessing = TRUE) {
   keras$applications$MobileNetV3Large(include_top = include_top,
@@ -225,6 +381,26 @@ keras_api$model$mobile_net_v3_large <- function(include_top = TRUE,
                                       include_preprocessing = include_preprocessing)
 }
 
+
+#' Init a EffcientNetB0 model.
+#' 
+#' @param include_top Boolean. Whether to include the layers at the top of the 
+#' network for classification.
+#' @param weights Character. One of `reticulate::py_none()` (random 
+#' initialization), "imagenet" (pre-training on ImageNet), or the path to the
+#' weights file to loaded.
+#' @param input_tensor Keras tensor. Output of `layer_input()`. 
+#' @param input_shape Integer. Length 3 integer vector indicating the input 
+#' shape.
+#' @param pooling Character. One of `reticulate::py_none()` (4D tensor output
+#' of the last convolutional block), "avg" (apply global average pooling to 
+#' get 2D tensor), "max" (apply global max pooling to get 2D tensor).
+#' @param classes Integer. Number of classes (output nodes). Ignored unless
+#' `include_top = TRUE`.
+#' @param classifier_activation Character. The activation function of the
+#' top layer. Ignored unless `include = TRUE`.
+#' @param drop_connect_rate Double. Dropout rate at skip connections.
+#' @return A Keras model.
 keras_api$model$effcient_net_b0 <- function(include_top = TRUE,
                                             weights = "imagenet", 
                                             input_tensor = reticulate::py_none(), 
@@ -369,4 +545,71 @@ keras_api$flow_images_from_directory <- function(directory,
                                            keep_aspect_ratio = keep_aspect_ratio,
                                            subset = "validation")
   return(list(train_set, val_set))
+}
+
+
+keras_api$preprocess_input <- function(x, data_format = reticulate::py_none(), model_name = "vgg16") {
+  c("effcient_net_b0" = "efficientnet",
+    "effcient_net_b1" = "efficientnet",
+    "effcient_net_b2" = "efficientnet",
+    "effcient_net_b3" = "efficientnet",
+    "effcient_net_b4" = "efficientnet",
+    "effcient_net_b5" = "efficientnet",
+    "effcient_net_b6" = "efficientnet",
+    "effcient_net_b7" = "efficientnet",
+    "effcient_net_v2_b0" = "efficientnet_v2",
+    "effcient_net_v2_b1" = "efficientnet_v2",
+    "effcient_net_v2_b2" = "efficientnet_v2",
+    "effcient_net_v2_b3" = "efficientnet_v2",
+    "effcient_net_v2_s" = "efficientnet_v2",
+    "effcient_net_v2_m" = "efficientnet_v2",
+    "effcient_net_v2_l" = "efficientnet_v2",
+    "xception" = "xception",
+    "vgg16" = "vgg16",
+    "vgg19" = "vgg19",
+    "resnet_50" = "resnet",
+    "resnet_101" = "resnet",
+    "resnet_152" = "resnet",
+    "resnet_50_v2" = "resnet_v2",
+    "resnet_101_v2" = "resnet_v2",
+    "resnet_152_v2" = "resnet_v2",
+    "inception_v3" = "inception_v3",
+    "inception_resnet_v2" = "inception_resnet_v2",
+    "mobile_net" = "mobilenet",
+    "mobile_net_v2" = "mobilenet_v2",
+    "mobile_net_v3_small" = "mobilenet_v3",
+    "mobile_net_v3_large" = "mobilenet_v3",
+    "dense_net_121" = "densenet",
+    "dense_net_169" = "densenet",
+    "dense_net_201" = "densenet",
+    "nas_net_mobile" = "nasnet",
+    "nas_net_large" = "nasnet",
+    "conv_next_tiny" = "convnext",
+    "conv_next_small" = "convnext",
+    "conv_next_base" = "convnext",
+    "conv_next_large" = "convnext",
+    "conv_next_xlarge" = "convnext")[model_name] -> module_name
+  return(keras$applications[[module_name]](x, data_format = data_format))
+}
+
+keras_api$fit_model <- function(base_model = keras_api$init_model(),
+                                directory = NULL,
+                                data = keras_api$flow_images_from_directory(directory),
+                                dense_nodes = c(256),
+                                dropout_rate = 0.2,
+                                batch_normalization = TRUE,
+                                activation = "relu",
+                                output_nodes = 2,
+                                optimizer = optimizer_adam(),
+                                loss = loss_categorical_crossentropy(),
+                                metrics = metric_categorical_accuracy(),
+                                callbacks = callback_early_stopping(patience = 10L),
+                                transfer_learning = FALSE) {
+  
+  if (!transfer_learning) base_model$trainable <- FALSE
+  
+  
+  
+  
+  
 }
