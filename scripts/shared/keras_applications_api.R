@@ -85,9 +85,9 @@ keras_api$get_input_shape <- function(model_name = "vgg16") {
     "conv_next_small" = 224L,
     "conv_next_base" = 224L,
     "conv_next_large" = 224L,
-    "conv_next_xlarge" = 224L)[base_model_type] -> input_shape
+    "conv_next_xlarge" = 224L)[model_name] -> input_shape
   if (is.na(input_shape)) stop(glue::glue("Unmatched model name {model_name}!"))
-  return(input_shape)
+  return(unname(c(input_shape, input_shape)))
 }
 
 keras_api$model$xception <- function(include_top = TRUE, 
@@ -315,3 +315,58 @@ keras_api$model$effcient_net_v2_b0 <- function(include_top = TRUE,
   }
 })()
 
+keras_api$init_model <- function(model_name = "vgg16", ...) {
+  if (is.null(keras_api$model[[model_name]])) stop("Unmatched model name {model_name}!")
+  keras_api$model[[model_name]](...)
+}
+
+keras_api$flow_images_from_directory <- function(directory,
+                                                 model_name = "vgg16",
+                                                 generator = image_data_generator(validation_split = 0.2),
+                                                 target_size = keras_api$get_input_shape(model_name),
+                                                 color_mode = "rgb",
+                                                 classes = reticulate::py_none(),
+                                                 class_mode = "categorical",
+                                                 batch_size = 32L,
+                                                 shuffle = TRUE,
+                                                 seed = 10086L,
+                                                 save_to_dir = reticulate::py_none(),
+                                                 save_prefix = "",
+                                                 save_format = "png",
+                                                 follow_links = FALSE,
+                                                 interpolation = "nearest",
+                                                 keep_aspect_ratio = FALSE) {
+  
+  train_set <- generator$flow_from_directory(directory = directory,
+                                             target_size = target_size,
+                                             color_mode = color_mode,
+                                             classes = classes,
+                                             class_mode = class_mode,
+                                             batch_size = batch_size,
+                                             shuffle = shuffle,
+                                             seed = seed,
+                                             save_to_dir = save_to_dir,
+                                             save_prefix = save_prefix,
+                                             save_format = save_format,
+                                             follow_links = follow_links,
+                                             interpolation = interpolation,
+                                             keep_aspect_ratio = keep_aspect_ratio,
+                                             subset = "training")
+  
+  val_set <- generator$flow_from_directory(directory = directory,
+                                           target_size = target_size,
+                                           color_mode = color_mode,
+                                           classes = classes,
+                                           class_mode = class_mode,
+                                           batch_size = batch_size,
+                                           shuffle = shuffle,
+                                           seed = seed,
+                                           save_to_dir = save_to_dir,
+                                           save_prefix = save_prefix,
+                                           save_format = save_format,
+                                           follow_links = follow_links,
+                                           interpolation = interpolation,
+                                           keep_aspect_ratio = keep_aspect_ratio,
+                                           subset = "validation")
+  return(list(train_set, val_set))
+}
