@@ -665,6 +665,8 @@ keras_api$flow_images_from_directory <- function(directory,
 }
 
 
+
+
 # preprocess_input --------------------------------------------------------
 
 #' Preprocess the input before feeding into Keras applications.
@@ -731,6 +733,7 @@ keras_api$preprocess_input <- function(x,
 #' @param baseline Double. Baseline value to reach.
 #' @param restore_best_weights Boolean. Whether to restore weights from the
 #' best epoch.
+#' @param early_stopping_verbose Boolean. Whether to turn on verbose mode.
 #' @param tensorboard Boolean. Whether to enable TensorBoard.
 #' @param log_dir Character. Path to save the log.
 #' @param histogram_freq Integer. Frequency in epochs to compute activation
@@ -745,6 +748,7 @@ keras_api$preprocess_input <- function(x,
 #' @param factor Double. Learning rate multiplier.
 #' @param lr_patience. Integer. Tolerance. Number of epochs.
 #' @param min_lr. Double. Lower bound of learning rate.
+#' @param lr_verbose Boolean. Whether to turn on verbose mode.
 #' @param terminate_on_nan Boolean. Whether to terminate when encounter NAN 
 #' loss.
 #' @param csv_logger Boolean. Whether to save training history as a csv file.
@@ -777,10 +781,12 @@ init_callbacks <- function(early_stopping = TRUE,
     callbacks$es <- callback_early_stopping(min_delta = min_delta,
                                             patience = patience,
                                             baseline = baseline,
-                                            restore_best_weights = restore_best_weights)
+                                            restore_best_weights = restore_best_weights,
+                                            verbose = early_stopping_verbose)
   }
   
   if (tensorboard) {
+    if (!dir.exists(dirname(log_dir))) dir.create(dirname(log_dir))
     callbacks$tb <- callback_tensorboard(log_dir = log_dir,
                                          histogram_freq = histogram_freq,
                                          write_graph = write_graph,
@@ -792,7 +798,8 @@ init_callbacks <- function(early_stopping = TRUE,
   if (reduce_lr_on_plateau) {
     callbacks$rlr <- callback_reduce_lr_on_plateau(factor = factor,
                                                    patience = lr_patience,
-                                                   min_lr = min_lr)
+                                                   min_lr = min_lr,
+                                                   verbose = lr_verbose)
   }
   
   if (terminate_on_nan) {
@@ -800,9 +807,27 @@ init_callbacks <- function(early_stopping = TRUE,
   }
   
   if (csv_Logger) {
-    if (!dir.exists(dirname(log_dir))) dir.create(dirname(log_dir))
+    if (!dir.exists(dirname(csv_filename))) dir.create(dirname(csv_filename))
     callbacks$csv <- callback_csv_logger(filename = csv_filename, append = append)
   }
   
   return(unname(callbacks))
 }
+
+
+# trigger_tf_and_keras_module ---------------------------------------------
+
+# A weird bug (Module proxy does not contain module name) will occur at the
+# first use of any keras/tf methods. It is possibly because the module
+# has not been fully loaded. The solution will be to manually trigger the
+# module loading by calling any function from the module.
+
+suppressWarnings(try(keras[["__version__"]]))
+
+cli::cli_bullets(c(
+  "{.alert-success Using}",
+  "*" = "{.strong Python} {.pkg keras} {.version {keras[['__version__']]}}",
+  "*" = "{.strong Python} {.pkg tensorflow} {.version {tf[['__version__']]}}",
+  "*" = "{.strong R} {.pkg tensorflow} {.version {packageVersion('keras')}}",
+  "*" = "{.strong R} {.pkg tensorflow} {.version {packageVersion('tensorflow')}}"
+))

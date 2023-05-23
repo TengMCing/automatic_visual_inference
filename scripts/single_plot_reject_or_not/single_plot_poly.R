@@ -79,6 +79,58 @@ fit_history <- this_model$fit(x = train_set,
 
 this_model$save(here::here("models/single_plot_reject_or_not/poly"))
 
+test_set <- image_data_generator()$flow_from_directory(directory = here::here("data/single_plot_reject_or_not/poly/test"),
+                                                       target_size = keras_api$get_input_shape()[1:2],
+                                                       batch_size = 32L,
+                                                       shuffle = FALSE,
+                                                       save_to_dir = FALSE)
+
+heter_set <- image_data_generator()$flow_from_directory(directory = here::here("data/single_plot_reject_or_not/heter/train"),
+                                                        target_size = keras_api$get_input_shape()[1:2],
+                                                        batch_size = 32L,
+                                                        shuffle = FALSE,
+                                                        save_to_dir = FALSE)
+
+poly_pred <- this_model$predict(test_set) %>%
+  as.data.frame() %>%
+  pull(V2)
+
+poly_pred_on_heter <- this_model$predict(heter_set) %>%
+  as.data.frame() %>%
+  pull(V2)
+
+yardstick::conf_mat(data.frame(truth = factor(test_set$labels),
+                               estimate = factor(as.integer(poly_pred > 0.5))),
+                    truth = truth,
+                    estimate = estimate)
+
+yardstick::conf_mat(data.frame(truth = factor(heter_set$labels),
+                               estimate = factor(as.integer(poly_pred_on_heter > 0.5))),
+                    truth = truth,
+                    estimate = estimate)
+
+yardstick::bal_accuracy(data.frame(truth = factor(test_set$labels),
+                                   estimate = factor(as.integer(poly_pred > 0.5))),
+                        truth = truth,
+                        estimate = estimate)
+
+yardstick::bal_accuracy(data.frame(truth = factor(heter_set$labels),
+                                   estimate = factor(as.integer(poly_pred_on_heter > 0.5))),
+                        truth = truth,
+                        estimate = estimate)
+
+yardstick::roc_curve(data.frame(truth = factor(test_set$labels),
+                                estimate = 1 - poly_pred),
+                     truth = truth,
+                     estimate = estimate) %>%
+  autoplot()
+
+yardstick::roc_curve(data.frame(truth = factor(heter_set$labels),
+                                estimate = 1 - poly_pred_on_heter),
+                     truth = truth,
+                     estimate = estimate) %>%
+  autoplot()
+
 (function() {
   user_input <- readline("Are you sure you want to stop the TensorBoard server? [y/n] ")
   if (user_input != 'y') {
