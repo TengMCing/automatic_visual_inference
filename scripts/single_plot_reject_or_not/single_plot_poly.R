@@ -70,9 +70,21 @@ callbacks <- init_callbacks(log_dir = here::here("logs/single_plot_reject_or_not
                             lr_patience = 5L,
                             csv_filename = here::here("history/single_plot_reject_or_not/poly.csv"))
 
+tensorflow::tensorboard(here::here("logs"))
+
 fit_history <- this_model$fit(x = train_set,
                               epochs = 1000L,
                               validation_data = val_set,
                               callbacks = callbacks)
 
 this_model$save(here::here("models/single_plot_reject_or_not/poly"))
+
+(function() {
+  user_input <- readline("Are you sure you want to stop the TensorBoard server? [y/n] ")
+  if (user_input != 'y') {
+    cat("Keep the TensorBoard server alive.")
+    return(invisible(NULL))
+  } else {
+    tensorflow::tensorboard(here::here("logs"), action = "stop")
+  }
+})()
