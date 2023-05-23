@@ -718,3 +718,86 @@ keras_api$preprocess_input <- function(x, data_format = reticulate::py_none(), m
 }
 
 
+
+# init_callbacks ----------------------------------------------------------
+
+#' Init a series of callbacks
+#' 
+#' @param earlystopping Boolean. Whether to enable early stopping.
+#' @param min_delta Double. Minimum change required.
+#' @param patience Integer. Tolerance. Number of epochs.
+#' @param baseline Double. Baseline value to reach.
+#' @param restore_best_weights Boolean. Whether to restore weights from the
+#' best epoch.
+#' @param tensorboard Boolean. Whether to enable TensorBoard.
+#' @param log_dir Character. Path to save the log.
+#' @param histogram_freq Integer. Frequency in epochs to compute activation
+#' histograms.
+#' @param write_graph Boolean. Whether to visualize the network.
+#' @param write_grads Boolean. Whether to visualize gradient histogram.
+#' @param write_images Boolean. Whether to visualize model weights as images.
+#' @param update_freq Character/Integer. "epoch", "batch" or integer number of
+#' samples.
+#' @param reduce_lr_on_plateau Boolean. Whether to reduce learning rate once
+#' learning stagnates.
+#' @param factor Double. Learning rate multiplier.
+#' @param lr_patience. Integer. Tolerance. Number of epochs.
+#' @param min_lr. Double. Lower bound of learning rate.
+#' @param terminate_on_nan Boolean. Whether to terminate when encounter NAN 
+#' loss.
+#' @param csv_logger Boolean. Whether to save training history as a csv file.
+#' @param filename Character. Path to save csv file.
+#' @param append Boolean. Overwrite or append to the csv file.
+init_callbacks <- function(early_stopping = TRUE, 
+                           min_delta = 0L,
+                           patience = 10L,
+                           baseline = reticulate::py_none(),
+                           restore_best_weights = FALSE,
+                           tensorboard = TRUE,
+                           log_dir = reticulate::py_none(),
+                           histogram_freq = 0L,
+                           write_graph = FALSE,
+                           write_grads = FALSE,
+                           write_images = FALSE,
+                           update_freq = "epoch",
+                           reduce_lr_on_plateau = FALSE,
+                           factor = 0.1,
+                           lr_patience = 10L,
+                           min_lr = 0L,
+                           terminate_on_nan = TRUE,
+                           csv_Logger = TRUE,
+                           filename = reticulate::py_none(),
+                           append = FALSE) {
+  callbacks <- list()
+  if (early_stopping) {
+    callbacks$es <- callback_early_stopping(min_delta = min_delta,
+                                            patience = patience,
+                                            baseline = baseline,
+                                            restore_best_weights = restore_best_weights)
+  }
+  
+  if (tensorboard) {
+    callbacks$tb <- callback_tensorboard(log_dir = log_dir,
+                                         histogram_freq = histogram_freq,
+                                         write_graph = write_graph,
+                                         write_grads = write_grads,
+                                         write_images = write_images,
+                                         update_freq = update_freq)
+  }
+  
+  if (reduce_lr_on_plateau) {
+    callbacks$rlr <- callback_reduce_lr_on_plateau(factor = factor,
+                                                   patience = lr_patience,
+                                                   min_lr = min_lr)
+  }
+  
+  if (terminate_on_nan) {
+    callbacks$nan <- callback_terminate_on_naan()
+  }
+  
+  if (csv_Logger) {
+    callbacks$csv <- callback_csv_logger(filename = filename, append = append)
+  }
+  
+  return(unname(callbacks))
+}
