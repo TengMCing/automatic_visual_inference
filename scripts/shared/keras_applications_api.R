@@ -102,7 +102,7 @@ keras_api$get_input_shape <- function(model_name = "vgg16") {
     "conv_next_large" = 224L,
     "conv_next_xlarge" = 224L)[model_name] -> input_shape
   if (is.na(input_shape)) stop(glue::glue("Unmatched model name {model_name}!"))
-  return(unname(c(input_shape, input_shape, 3)))
+  return(unname(c(input_shape, input_shape, 3L)))
 }
 
 
@@ -587,7 +587,7 @@ keras_api$init_model <- function(model_name = "vgg16", ...) {
 #' one folder for each class.
 #' @param model_name Character. One of available Keras applications.
 #' @param generator Object. Output of `image_data_generator()`.
-#' @param target_size Integer. Length 3 vector indicating the input shape.
+#' @param target_size Integer. Length 2 vector indicating the image size.
 #' @param color_mode Character. Color mode of the image.
 #' @param classes Character. Could be `reticulate::py_none()` (class labels 
 #' inferred from the subdirectory), or a length 2 vector indicating the class 
@@ -616,7 +616,7 @@ keras_api$init_model <- function(model_name = "vgg16", ...) {
 keras_api$flow_images_from_directory <- function(directory,
                                                  model_name = "vgg16",
                                                  generator = image_data_generator(validation_split = 0.2),
-                                                 target_size = keras_api$get_input_shape(model_name),
+                                                 target_size = keras_api$get_input_shape(model_name)[1:2],
                                                  color_mode = "rgb",
                                                  classes = reticulate::py_none(),
                                                  class_mode = "categorical",
@@ -673,7 +673,9 @@ keras_api$flow_images_from_directory <- function(directory,
 #' @param data_format Character. Either "channel_first" or "channel_last".
 #' @param model_name Character. One of aviailable Keras applications.
 #' @return A keras tensor.
-keras_api$preprocess_input <- function(x, data_format = reticulate::py_none(), model_name = "vgg16") {
+keras_api$preprocess_input <- function(x, 
+                                       data_format = reticulate::py_none(), 
+                                       model_name = "vgg16") {
   c("efficient_net_b0" = "efficientnet",
     "efficient_net_b1" = "efficientnet",
     "efficient_net_b2" = "efficientnet",
@@ -753,6 +755,7 @@ init_callbacks <- function(early_stopping = TRUE,
                            patience = 10L,
                            baseline = reticulate::py_none(),
                            restore_best_weights = FALSE,
+                           early_stopping_verbose = 1L,
                            tensorboard = TRUE,
                            log_dir = reticulate::py_none(),
                            histogram_freq = 0L,
@@ -764,9 +767,10 @@ init_callbacks <- function(early_stopping = TRUE,
                            factor = 0.1,
                            lr_patience = 10L,
                            min_lr = 0L,
+                           lr_verbose = 1L,
                            terminate_on_nan = TRUE,
                            csv_Logger = TRUE,
-                           filename = reticulate::py_none(),
+                           csv_filename = reticulate::py_none(),
                            append = FALSE) {
   callbacks <- list()
   if (early_stopping) {
@@ -796,7 +800,8 @@ init_callbacks <- function(early_stopping = TRUE,
   }
   
   if (csv_Logger) {
-    callbacks$csv <- callback_csv_logger(filename = filename, append = append)
+    if (!dir.exists(dirname(log_dir))) dir.create(dirname(log_dir))
+    callbacks$csv <- callback_csv_logger(filename = csv_filename, append = append)
   }
   
   return(unname(callbacks))
