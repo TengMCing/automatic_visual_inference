@@ -70,7 +70,7 @@ for (i in 1:nrow(model_parameters)) {
   
   plot_dat <- map(1:50, ~mod$gen(model_parameters$n[i]))
   
-  draw_single_plots(plot_dat, "poly/train/not_null", i * 50)
+  draw_single_plots(plot_dat, "poly/train/not_null", (i - 1) * 50 + 1)
 }
 
 for (i in 1:nrow(model_parameters)) {
@@ -92,7 +92,7 @@ for (i in 1:nrow(model_parameters)) {
   
   plot_dat <- map(1:5, ~mod$gen(model_parameters$n[i]))
   
-  draw_single_plots(plot_dat, "poly/test/not_null", i * 5)
+  draw_single_plots(plot_dat, "poly/test/not_null", (i - 1) * 5 + 1)
 }
 
 for (i in 1:nrow(model_parameters)) {
@@ -115,7 +115,7 @@ for (i in 1:nrow(model_parameters)) {
   
   plot_dat <- map(1:50, ~mod$gen(model_parameters$n[i]))
   
-  draw_single_plots(plot_dat, "poly/train/null", i * 50)
+  draw_single_plots(plot_dat, "poly/train/null", (i - 1) * 50 + 1)
 }
 
 for (i in 1:nrow(model_parameters)) {
@@ -138,7 +138,7 @@ for (i in 1:nrow(model_parameters)) {
   
   plot_dat <- map(1:5, ~mod$gen(model_parameters$n[i]))
   
-  draw_single_plots(plot_dat, "poly/test/null", i * 5)
+  draw_single_plots(plot_dat, "poly/test/null", (i - 1) * 5 + 1)
 }
 
 
@@ -172,7 +172,7 @@ for (i in 1:nrow(model_parameters)) {
   
   heter_dat <- map(1:50, ~mod$gen(model_parameters$n[i]))
   
-  draw_single_plots(heter_dat, "heter/train/not_null", i * 50)
+  draw_single_plots(heter_dat, "heter/train/not_null", (i - 1) * 50 + 1)
 }
 
 for (i in 1:nrow(model_parameters)) {
@@ -194,7 +194,7 @@ for (i in 1:nrow(model_parameters)) {
   
   heter_dat <- map(1:5, ~mod$gen(model_parameters$n[i]))
   
-  draw_single_plots(heter_dat, "heter/test/not_null", i * 5)
+  draw_single_plots(heter_dat, "heter/test/not_null", (i - 1) * 5 + 1)
 }
 
 for (i in 1:nrow(model_parameters)) {
@@ -216,7 +216,7 @@ for (i in 1:nrow(model_parameters)) {
   
   heter_dat <- map(1:50, ~mod$gen(model_parameters$n[i]))
   
-  draw_single_plots(heter_dat, "heter/train/null", i * 50)
+  draw_single_plots(heter_dat, "heter/train/null", (i - 1) * 50 + 1)
 }
 
 for (i in 1:nrow(model_parameters)) {
@@ -238,5 +238,48 @@ for (i in 1:nrow(model_parameters)) {
   
   heter_dat <- map(1:5, ~mod$gen(model_parameters$n[i]))
   
-  draw_single_plots(heter_dat, "heter/test/null", i * 5)
+  draw_single_plots(heter_dat, "heter/test/null", (i - 1) * 5 + 1)
+}
+
+
+# mixed_data --------------------------------------------------------------
+
+if (!dir.exists(here::here("data/single_plot_null_or_not_sim_only/mixed"))) dir.create(here::here("data/single_plot_null_or_not_sim_only/mixed"))
+
+file.copy(here::here("data/single_plot_null_or_not_sim_only/poly/train"),
+          here::here("data/single_plot_null_or_not_sim_only/mixed"),
+          recursive = TRUE)
+
+file.copy(here::here("data/single_plot_null_or_not_sim_only/poly/test"),
+          here::here("data/single_plot_null_or_not_sim_only/mixed"),
+          recursive = TRUE)
+
+max_train_id <- as.integer(gsub(".png", "", list.files("data/single_plot_null_or_not_sim_only/mixed/train/not_null"))) %>%
+  max()
+
+max_test_id <- as.integer(gsub(".png", "", list.files("data/single_plot_null_or_not_sim_only/mixed/test/not_null"))) %>%
+  max()
+
+for (file in list.files(here::here("data/single_plot_null_or_not_sim_only/heter/train/not_null"))) {
+  file.copy(here::here("data/single_plot_null_or_not_sim_only/heter/train/not_null", file),
+            here::here("data/single_plot_null_or_not_sim_only/mixed/train/not_null", 
+                       paste0(as.integer(gsub(".png", "", file)) + max_train_id, ".png")))
+}
+
+for (file in list.files(here::here("data/single_plot_null_or_not_sim_only/heter/train/null"))) {
+  file.copy(here::here("data/single_plot_null_or_not_sim_only/heter/train/null", file),
+            here::here("data/single_plot_null_or_not_sim_only/mixed/train/null", 
+                       paste0(as.integer(gsub(".png", "", file)) + max_train_id, ".png")))
+}
+
+for (file in list.files(here::here("data/single_plot_null_or_not_sim_only/heter/test/not_null"))) {
+  file.copy(here::here("data/single_plot_null_or_not_sim_only/heter/test/not_null", file),
+            here::here("data/single_plot_null_or_not_sim_only/mixed/test/not_null", 
+                       paste0(as.integer(gsub(".png", "", file)) + max_test_id, ".png")))
+}
+
+for (file in list.files(here::here("data/single_plot_null_or_not_sim_only/heter/test/null"))) {
+  file.copy(here::here("data/single_plot_null_or_not_sim_only/heter/test/null", file),
+            here::here("data/single_plot_null_or_not_sim_only/mixed/test/null", 
+                       paste0(as.integer(gsub(".png", "", file)) + max_test_id, ".png")))
 }
