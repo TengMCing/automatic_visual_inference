@@ -10,3 +10,4 @@ data/single_plot/
 .DS_Store
 
 data/single_plot_reject_or_not/
+data/single_plot_null_or_not_sim_only/
