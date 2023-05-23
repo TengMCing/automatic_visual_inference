@@ -47,26 +47,32 @@ build_with_base_model <- function(model_name = "vgg16",
        val_set)
 }
 
+compile_with_learning_rate <- function(model, learning_rate = 0.001) {
+  # At this time, the v2.11+ optimizer `tf.keras.optimizers.Adam` runs 
+  # slowly on M1/M2 Macs, please use the legacy Keras optimizer instead, 
+  # located at `tf.keras.optimizers.legacy.Adam`.
+  model$compile(optimizer =  keras$optimizers$legacy$Adam(learning_rate = learning_rate),
+                loss = "categorical_crossentropy",
+                metrics = "categorical_accuracy")
+  return(model)
+}
 
 
+c(this_model, train_set, val_set) %<-% build_with_base_model()
+compile_with_learning_rate(this_model, 0.001)
 
-# Compile our model
-this_model$compile(optimizer = "adam", 
-                   loss = "categorical_crossentropy",
-                   metrics = "categorical_accuracy")
+callbacks <- init_callbacks(log_dir = here::here("logs/single_plot_reject_or_not/poly"),
+                            patience = 20L,
+                            histogram_freq = 5L,
+                            write_grads = TRUE,
+                            reduce_lr_on_plateau = TRUE,
+                            factor = 0.5,
+                            lr_patience = 5L,
+                            csv_filename = here::here("history/single_plot_reject_or_not/poly.csv"))
 
-this_model
+fit_history <- this_model$fit(x = train_set,
+                              epochs = 1000L,
+                              validation_data = val_set,
+                              callbacks = callbacks)
 
-# To monitor the training process
-this_callbacks = list(callback_early_stopping(patience = 10L), 
-                      callback_tensorboard("logs/single_plot_poly"))
-
-
-fit_history <- this_model$fit(x = train_gen, 
-                              epochs = 100L, 
-                              validation_data = val_gen,
-                              callbacks = this_callbacks)
-
-if (!dir.exists(here::here("history"))) dir.create(here::here("history"))
-saveRDS(fit_history, here::here("history/single_plot_poly.rds"))
-this_model$save(here::here("models/single_plot_poly"))
+this_model$save(here::here("models/single_plot_reject_or_not/poly"))
