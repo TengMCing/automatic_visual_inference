@@ -4,6 +4,7 @@ if (!requireNamespace("tidyverse", quietly = TRUE)) install.packages("tidyverse"
 if (!requireNamespace("here", quietly = TRUE)) install.packages("here", repos = default_repo)
 if (!requireNamespace("glue", quietly = TRUE)) install.packages("glue", repos = default_repo)
 if (!requireNamespace("progress", quietly = TRUE)) install.packages("progress", repos = default_repo)
+if (!requireNamespace("doMC", quietly = TRUE)) install.packages("doMC", repos = default_repo)
 if (!requireNamespace("visage", quietly = TRUE)) {
   remotes::install_github("TengMCing/bandicoot")
   remotes::install_github("TengMCing/visage")
@@ -13,7 +14,19 @@ if (!requireNamespace("visage", quietly = TRUE)) {
 library(tidyverse)
 library(visage)
 
+
+# multicore ---------------------------------------------------------------
+
+library(doMC)
+library(foreach)
+
+registerDoMC()
+
+cat(glue::glue("{getDoParWorkers()} workers is used by `doMC`!"))
+
 set.seed(10086)
+
+# shared data -------------------------------------------------------------
 
 # Create paths
 if (!dir.exists(here::here("data"))) dir.create(here::here("data"))
@@ -31,7 +44,7 @@ if (file.exists(here::here("data/shared/vi_lineup.rds"))) {
 # progress bar ------------------------------------------------------------
 
 new_pb <- function(violation, total) {
-  barstr <- glue::glue("[:spin] {violation} parameter :what [:bar] :current/:total (:percent) eta: :eta")
+  barstr <- glue::glue("[:spin] {violation} parameter :what [:bar] :current/:total (:percent) eta: :eta :tick_rate/sec")
   pb <- progress::progress_bar$new(format = barstr,
                                    total = total,
                                    clear = FALSE,
@@ -62,22 +75,25 @@ draw_plots <- function(violation, not_null, null, n, meta_vector) {
       plot_dat <- map(1:SAMPLE_PER_PARAMETER[[data_type]], 
                       ~mod[[response]]$gen(n))
       
-      plots_to_save <- map(plot_dat, function(this_dat) {
-        # Generate ggplot with smaller base size to keep the point size consistent
-        this_dat %>%
-          VI_MODEL$plot(theme = theme_light(base_size = 11/5), 
-                        remove_axis = TRUE, 
-                        remove_legend = TRUE, 
-                        remove_grid_line = TRUE)
-      })
+      # Speed up the plot drawing
+      num_plots <- length(plot_dat)
+      foreach(this_dat = plot_dat, 
+              this_plot_id = (PLOT_UID + 1):(PLOT_UID + num_plots)) %dopar% {
+                this_plot <- this_dat %>%
+                  VI_MODEL$plot(theme = theme_light(base_size = 11/5), 
+                                remove_axis = TRUE, 
+                                remove_legend = TRUE, 
+                                remove_grid_line = TRUE)
+                
+                # The lineup layout contains 4 rows and 5 cols
+                ggsave(glue::glue(here::here("data/single_plot_null_or_not_sim_only/{violation}/{data_type}/{response}/{this_plot_id}.png")), 
+                       this_plot, 
+                       width = 7/5, 
+                       height = 7/4)
+              }
       
-      for (this_plot in plots_to_save) {
+      for (.unused in 1:num_plots) {
         PLOT_UID <<- PLOT_UID + 1
-        # The lineup layout contains 4 rows and 5 cols
-        ggsave(glue::glue(here::here("data/single_plot_null_or_not_sim_only/{violation}/{data_type}/{response}/{PLOT_UID}.png")), 
-               this_plot, 
-               width = 7/5, 
-               height = 7/4)
         PLOT_META <<- PLOT_META %>%
           bind_rows(c(plot_uid = PLOT_UID, 
                       meta_vector, 
@@ -91,7 +107,7 @@ draw_plots <- function(violation, not_null, null, n, meta_vector) {
 # Ensure the support of the predictor is [-1, 1]
 stand_dist <- function(x) (x - min(x))/max(x - min(x)) * 2 - 1
 
-SAMPLE_PER_PARAMETER <- list(train = 1, test = 1)
+SAMPLE_PER_PARAMETER <- list(train = 100, test = 10)
 
 # Define the x variable
 rand_uniform_x <- rand_uniform(-1, 1)
