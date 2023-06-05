@@ -1,3 +1,14 @@
+if (!requireNamespace("haven", quietly = TRUE)) install.packages("haven")
+if (!requireNamespace("tidyverse", quietly = TRUE)) install.packages("tidyverse")
+if (!requireNamespace("here", quietly = TRUE)) install.packages("here")
+if (!requireNamespace("glue", quietly = TRUE)) install.packages("glue")
+if (!requireNamespace("progress", quietly = TRUE)) install.packages("progress")
+if (!requireNamespace("visage", quietly = TRUE)) {
+  remotes::install_github("TengMCing/bandicoot")
+  remotes::install_github("TengMCing/visage")
+}
+
+
 library(tidyverse)
 library(visage)
 
