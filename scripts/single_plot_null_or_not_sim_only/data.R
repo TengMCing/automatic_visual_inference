@@ -1,8 +1,9 @@
-if (!requireNamespace("haven", quietly = TRUE)) install.packages("haven")
-if (!requireNamespace("tidyverse", quietly = TRUE)) install.packages("tidyverse")
-if (!requireNamespace("here", quietly = TRUE)) install.packages("here")
-if (!requireNamespace("glue", quietly = TRUE)) install.packages("glue")
-if (!requireNamespace("progress", quietly = TRUE)) install.packages("progress")
+default_repo <- "https://cloud.r-project.org"
+if (!requireNamespace("haven", quietly = TRUE)) install.packages("haven", repos = default_repo)
+if (!requireNamespace("tidyverse", quietly = TRUE)) install.packages("tidyverse", repos = default_repo)
+if (!requireNamespace("here", quietly = TRUE)) install.packages("here", repos = default_repo)
+if (!requireNamespace("glue", quietly = TRUE)) install.packages("glue", repos = default_repo)
+if (!requireNamespace("progress", quietly = TRUE)) install.packages("progress", repos = default_repo)
 if (!requireNamespace("visage", quietly = TRUE)) {
   remotes::install_github("TengMCing/bandicoot")
   remotes::install_github("TengMCing/visage")
