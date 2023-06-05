@@ -15,31 +15,87 @@ if (file.exists(here::here("data/shared/vi_lineup.rds"))) {
   saveRDS(vi_lineup, file = here::here("data/shared/vi_lineup.rds"))
 }
 
-draw_single_plots <- function(plot_dat, folder, start_id) {
-  plots_to_save <- map(plot_dat, function(this_dat) {
-      # Generate ggplot with smaller base size to keep the point size consistent
-      this_dat %>%
-        VI_MODEL$plot(theme = theme_light(base_size = 11/5), 
-                      remove_axis = TRUE, 
-                      remove_legend = TRUE, 
-                      remove_grid_line = TRUE)
-    })
+
+# progress bar ------------------------------------------------------------
+
+new_pb <- function(violation, total) {
+  barstr <- glue::glue("[:spin] {violation} parameter :what [:bar] :current/:total (:percent) eta: :eta")
+  pb <- progress::progress_bar$new(format = barstr,
+                                   total = total,
+                                   clear = FALSE,
+                                   width = 60)
+  return(pb)
+}
+
+update_pb <- function(pb, i) {
+  pb$tick(token = list(what = i))
+}
+
+# Global setting ----------------------------------------------------------
+
+# The global uid for plots
+PLOT_UID <- 0
+
+# The global meta data for plots
+PLOT_META <- data.frame()
+
+# Draw plots for a violation model
+draw_plots <- function(violation, not_null, null, n, meta_vector) {
+  mod <- list()
+  mod$not_null <- not_null
+  mod$null <- null
   
-  new_id <- 0
-  for (this_plot in plots_to_save) {
-    new_id <- new_id + 1
-    
-    # The lineup layout contains 4 rows and 5 cols
-    ggsave(glue::glue(here::here("data/single_plot_null_or_not_sim_only/{folder}/{start_id + new_id - 1}.png")), 
-           this_plot, 
-           width = 7/5, 
-           height = 7/4)
+  for (response in c("not_null", "null")) {
+    for (data_type in c("train", "test")) {
+      plot_dat <- map(1:SAMPLE_PER_PARAMETER[[data_type]], 
+                      ~mod[[response]]$gen(n))
+      
+      plots_to_save <- map(plot_dat, function(this_dat) {
+        # Generate ggplot with smaller base size to keep the point size consistent
+        this_dat %>%
+          VI_MODEL$plot(theme = theme_light(base_size = 11/5), 
+                        remove_axis = TRUE, 
+                        remove_legend = TRUE, 
+                        remove_grid_line = TRUE)
+      })
+      
+      for (this_plot in plots_to_save) {
+        PLOT_UID <<- PLOT_UID + 1
+        # The lineup layout contains 4 rows and 5 cols
+        ggsave(glue::glue(here::here("data/single_plot_null_or_not_sim_only/{violation}/{data_type}/{response}/{PLOT_UID}.png")), 
+               this_plot, 
+               width = 7/5, 
+               height = 7/4)
+        PLOT_META <<- PLOT_META %>%
+          bind_rows(c(plot_uid = PLOT_UID, 
+                      meta_vector, 
+                      data_type = data_type, 
+                      response = response))
+      }
+    }
   }
 }
 
 # Ensure the support of the predictor is [-1, 1]
 stand_dist <- function(x) (x - min(x))/max(x - min(x)) * 2 - 1
 
+SAMPLE_PER_PARAMETER <- list(train = 1, test = 1)
+
+# Define the x variable
+rand_uniform_x <- rand_uniform(-1, 1)
+rand_normal_raw_x <- rand_normal(sigma = 0.3)
+rand_normal_x <- closed_form(~stand_dist(rand_normal_raw_x))
+rand_lognormal_raw_x <- rand_lognormal(sigma = 0.6)
+rand_lognormal_x <- closed_form(~stand_dist(rand_lognormal_raw_x/3 - 1))
+rand_discrete_x <- rand_uniform_d(k = 5, even = TRUE)
+
+get_x_var <- function(dist_name) {
+  switch(as.character(dist_name),
+         uniform = rand_uniform_x,
+         normal = rand_normal_x,
+         lognormal = rand_lognormal_x,
+         even_discrete = rand_discrete_x)
+} 
 
 # poly_data ---------------------------------------------------------------
 
@@ -51,97 +107,22 @@ model_parameters <- expand.grid(shape = 1:4,
                                            "even_discrete"),
                                 n = c(50, 100, 300))
 
-for (i in 1:nrow(model_parameters)) {
-  x <- switch(as.character(model_parameters$x_dist[i]),
-              uniform = rand_uniform(-1, 1),
-              normal = {
-                raw_x <- rand_normal(sigma = 0.3)
-                closed_form(~stand_dist(raw_x))
-              },
-              lognormal = {
-                raw_x <- rand_lognormal(sigma = 0.6)
-                closed_form(~stand_dist(raw_x/3 - 1))
-              },
-              even_discrete = rand_uniform_d(k = 5, even = TRUE))
-  
-  mod <- poly_model(model_parameters$shape[i], 
-                    x = x, 
-                    sigma = model_parameters$e_sigma[i])
-  
-  plot_dat <- map(1:50, ~mod$gen(model_parameters$n[i]))
-  
-  draw_single_plots(plot_dat, "poly/train/not_null", (i - 1) * 50 + 1)
-}
+pb <- new_pb("Poly", nrow(model_parameters))
 
 for (i in 1:nrow(model_parameters)) {
-  x <- switch(as.character(model_parameters$x_dist[i]),
-              uniform = rand_uniform(-1, 1),
-              normal = {
-                raw_x <- rand_normal(sigma = 0.3)
-                closed_form(~stand_dist(raw_x))
-              },
-              lognormal = {
-                raw_x <- rand_lognormal(sigma = 0.6)
-                closed_form(~stand_dist(raw_x/3 - 1))
-              },
-              even_discrete = rand_uniform_d(k = 5, even = TRUE))
-  
-  mod <- poly_model(model_parameters$shape[i], 
-                    x = x, 
-                    sigma = model_parameters$e_sigma[i])
-  
-  plot_dat <- map(1:5, ~mod$gen(model_parameters$n[i]))
-  
-  draw_single_plots(plot_dat, "poly/test/not_null", (i - 1) * 5 + 1)
+  update_pb(pb, i)
+  draw_plots(violation = "poly",
+             not_null = poly_model(model_parameters$shape[i], 
+                                   x = get_x_var(model_parameters$x_dist[i]), 
+                                   sigma = model_parameters$e_sigma[i]),
+             null = poly_model(model_parameters$shape[i], 
+                               x = get_x_var(model_parameters$x_dist[i]), 
+                               include_z = FALSE,
+                               sigma = model_parameters$e_sigma[i]),
+             n = model_parameters$n[i],
+             meta_vector = c(model_parameters[i, ]))
+                               
 }
-
-for (i in 1:nrow(model_parameters)) {
-  x <- switch(as.character(model_parameters$x_dist[i]),
-              uniform = rand_uniform(-1, 1),
-              normal = {
-                raw_x <- rand_normal(sigma = 0.3)
-                closed_form(~stand_dist(raw_x))
-              },
-              lognormal = {
-                raw_x <- rand_lognormal(sigma = 0.6)
-                closed_form(~stand_dist(raw_x/3 - 1))
-              },
-              even_discrete = rand_uniform_d(k = 5, even = TRUE))
-  
-  mod <- poly_model(model_parameters$shape[i], 
-                    x = x, 
-                    include_z = FALSE, 
-                    sigma = model_parameters$e_sigma[i])
-  
-  plot_dat <- map(1:50, ~mod$gen(model_parameters$n[i]))
-  
-  draw_single_plots(plot_dat, "poly/train/null", (i - 1) * 50 + 1)
-}
-
-for (i in 1:nrow(model_parameters)) {
-  x <- switch(as.character(model_parameters$x_dist[i]),
-              uniform = rand_uniform(-1, 1),
-              normal = {
-                raw_x <- rand_normal(sigma = 0.3)
-                closed_form(~stand_dist(raw_x))
-              },
-              lognormal = {
-                raw_x <- rand_lognormal(sigma = 0.6)
-                closed_form(~stand_dist(raw_x/3 - 1))
-              },
-              even_discrete = rand_uniform_d(k = 5, even = TRUE))
-  
-  mod <- poly_model(model_parameters$shape[i], 
-                    x = x, 
-                    include_z = FALSE, 
-                    sigma = model_parameters$e_sigma[i])
-  
-  plot_dat <- map(1:5, ~mod$gen(model_parameters$n[i]))
-  
-  draw_single_plots(plot_dat, "poly/test/null", (i - 1) * 5 + 1)
-}
-
-
 
 # heter_data --------------------------------------------------------------
 
@@ -153,133 +134,142 @@ model_parameters <- expand.grid(a = c(-1, 0, 1),
                                            "even_discrete"),
                                 n = c(50, 100, 300))
 
-for (i in 1:nrow(model_parameters)) {
-  x <- switch(as.character(model_parameters$x_dist[i]),
-              uniform = rand_uniform(-1, 1),
-              normal = {
-                raw_x <- rand_normal(sigma = 0.3)
-                closed_form(~stand_dist(raw_x))
-              },
-              lognormal = {
-                raw_x <- rand_lognormal(sigma = 0.6)
-                closed_form(~stand_dist(raw_x/3 - 1))
-              },
-              even_discrete = rand_uniform_d(k = 5, even = TRUE))
-  
-  mod <- heter_model(a = model_parameters$a[i],
-                     b = model_parameters$b[i],
-                     x = x)
-  
-  heter_dat <- map(1:50, ~mod$gen(model_parameters$n[i]))
-  
-  draw_single_plots(heter_dat, "heter/train/not_null", (i - 1) * 50 + 1)
-}
+pb <- new_pb("Heter", nrow(model_parameters))
 
 for (i in 1:nrow(model_parameters)) {
-  x <- switch(as.character(model_parameters$x_dist[i]),
-              uniform = rand_uniform(-1, 1),
-              normal = {
-                raw_x <- rand_normal(sigma = 0.3)
-                closed_form(~stand_dist(raw_x))
-              },
-              lognormal = {
-                raw_x <- rand_lognormal(sigma = 0.6)
-                closed_form(~stand_dist(raw_x/3 - 1))
-              },
-              even_discrete = rand_uniform_d(k = 5, even = TRUE))
-  
-  mod <- heter_model(a = model_parameters$a[i],
-                     b = model_parameters$b[i],
-                     x = x)
-  
-  heter_dat <- map(1:5, ~mod$gen(model_parameters$n[i]))
-  
-  draw_single_plots(heter_dat, "heter/test/not_null", (i - 1) * 5 + 1)
+  update_pb(pb, i)
+  draw_plots(violation = "heter",
+             not_null = heter_model(a = model_parameters$a[i],
+                                    b = model_parameters$b[i],
+                                    x = get_x_var(model_parameters$x_dist[i])),
+             null = heter_model(a = model_parameters$a[i],
+                                b = 0,
+                                x = get_x_var(model_parameters$x_dist[i])),
+             n = model_parameters$n[i],
+             meta_vector = c(model_parameters[i, ]))
+                               
 }
+
+
+# non_normal --------------------------------------------------------------
+
+model_parameters <- expand.grid(x_dist = c("uniform", 
+                                           "normal", 
+                                           "lognormal", 
+                                           "even_discrete"),
+                                e_dist = c("uniform",
+                                           "lognormal",
+                                           "even_discrete",
+                                           "t"),
+                                df = c(0, 1, 2, 5, 10),
+                                e_sigma = c(0.5, 1, 2, 4),
+                                n = c(50, 100, 300))
+
+model_parameters <- model_parameters %>%
+  filter(!(e_dist != "t" & df != 0)) %>%
+  filter(!(e_dist == "t" & df == 0))
+
+lognormal_sigma_table <- map_dbl(seq(0.001, 2, 0.001), ~sqrt((exp(.x^2) - 1) * exp(.x^2)))
+names(lognormal_sigma_table) <- seq(0.001, 2, 0.001)
+
+get_e_var <- function(dist_name, df, e_sigma) {
+  
+  dist_name <- as.character(dist_name)
+  
+  if (dist_name == "uniform") {
+    return(rand_uniform(a = -sqrt(12 * e_sigma^2)/2, 
+                        b = sqrt(12 * e_sigma^2)/2,
+                        env = new.env(parent = .GlobalEnv)))
+  }
+  
+  if (dist_name == "lognormal") {
+    table_index <- which.min(abs(lognormal_sigma_table - e_sigma))
+    mod_sigma <- as.numeric(names(lognormal_sigma_table))[table_index]
+    return(rand_lognormal(mu = 0,
+                          sigma = mod_sigma,
+                          env = new.env(parent = .GlobalEnv)))
+  }
+  
+  if (dist_name == "even_discrete") {
+    return(rand_uniform_d(a = -sqrt(12 * e_sigma^2)/2, 
+                          b = sqrt(12 * e_sigma^2)/2,
+                          even = TRUE,
+                          env = new.env(parent = .GlobalEnv)))
+  }
+  
+  if (dist_name == "t") {
+    tau <- 1
+    if (df > 2) tau <- sqrt(e_sigma^2 * (df - 2)/df)
+    return(rand_t(tau = tau, 
+                  df = df, 
+                  env = new.env(parent = .GlobalEnv)))
+  }
+  
+  return(rand_normal(sigma = e_sigma, 
+                     env = new.env(parent = .GlobalEnv)))
+}
+
+pb <- new_pb("Non-normal", nrow(model_parameters))
 
 for (i in 1:nrow(model_parameters)) {
-  x <- switch(as.character(model_parameters$x_dist[i]),
-              uniform = rand_uniform(-1, 1),
-              normal = {
-                raw_x <- rand_normal(sigma = 0.3)
-                closed_form(~stand_dist(raw_x))
-              },
-              lognormal = {
-                raw_x <- rand_lognormal(sigma = 0.6)
-                closed_form(~stand_dist(raw_x/3 - 1))
-              },
-              even_discrete = rand_uniform_d(k = 5, even = TRUE))
-  
-  mod <- heter_model(a = model_parameters$a[i],
-                     b = 0,
-                     x = x)
-  
-  heter_dat <- map(1:50, ~mod$gen(model_parameters$n[i]))
-  
-  draw_single_plots(heter_dat, "heter/train/null", (i - 1) * 50 + 1)
+  update_pb(pb, i)
+  draw_plots(violation = "non_normal",
+             not_null = non_normal_model(x = get_x_var(model_parameters$x_dist[i]),
+                                         e = get_e_var(model_parameters$e_dist[i],
+                                                       model_parameters$df[i],
+                                                       model_parameters$e_sigma[i])),
+             null = non_normal_model(x = get_x_var(model_parameters$x_dist[i]),
+                                     e = get_e_var("normal", 
+                                                   0, 
+                                                   model_parameters$e_sigma[i])),
+             n = model_parameters$n[i],
+             meta_vector = c(model_parameters[i, ]))
+                               
 }
+
+
+# non_normal --------------------------------------------------------------
+
+model_parameters <- expand.grid(x_dist = c("uniform", 
+                                           "normal", 
+                                           "lognormal", 
+                                           "even_discrete"),
+                                phi = seq(0.1, 0.9, 0.2),
+                                e_sigma = c(0.5, 1, 2, 4),
+                                n = c(50, 100, 300))
+
+pb <- new_pb("AR1", nrow(model_parameters))
 
 for (i in 1:nrow(model_parameters)) {
-  x <- switch(as.character(model_parameters$x_dist[i]),
-              uniform = rand_uniform(-1, 1),
-              normal = {
-                raw_x <- rand_normal(sigma = 0.3)
-                closed_form(~stand_dist(raw_x))
-              },
-              lognormal = {
-                raw_x <- rand_lognormal(sigma = 0.6)
-                closed_form(~stand_dist(raw_x/3 - 1))
-              },
-              even_discrete = rand_uniform_d(k = 5, even = TRUE))
+  update_pb(pb, i)
+  draw_plots(violation = "ar1",
+             not_null = ar1_model(x = get_x_var(model_parameters$x_dist[i]),
+                                  phi = model_parameters$phi[i],
+                                  sigma = model_parameters$e_sigma[i]),
+             null = ar1_model(x = get_x_var(model_parameters$x_dist[i]),
+                              phi = 0,
+                              sigma = model_parameters$e_sigma[i]),
+             n = model_parameters$n[i],
+             meta_vector = c(model_parameters[i, ]))
   
-  mod <- heter_model(a = model_parameters$a[i],
-                     b = 0,
-                     x = x)
-  
-  heter_dat <- map(1:5, ~mod$gen(model_parameters$n[i]))
-  
-  draw_single_plots(heter_dat, "heter/test/null", (i - 1) * 5 + 1)
 }
 
+
+# save_meta_data ----------------------------------------------------------
+
+saveRDS(PLOT_META, here::here("data/single_plot_null_or_not_sim_only/meta.rds"))
 
 # mixed_data --------------------------------------------------------------
 
 if (!dir.exists(here::here("data/single_plot_null_or_not_sim_only/mixed"))) dir.create(here::here("data/single_plot_null_or_not_sim_only/mixed"))
+if (!dir.exists(here::here("data/single_plot_null_or_not_sim_only/mixed/train"))) dir.create(here::here("data/single_plot_null_or_not_sim_only/mixed/train"))
+if (!dir.exists(here::here("data/single_plot_null_or_not_sim_only/mixed/test"))) dir.create(here::here("data/single_plot_null_or_not_sim_only/mixed/test"))
 
-file.copy(here::here("data/single_plot_null_or_not_sim_only/poly/train"),
-          here::here("data/single_plot_null_or_not_sim_only/mixed"),
-          recursive = TRUE)
-
-file.copy(here::here("data/single_plot_null_or_not_sim_only/poly/test"),
-          here::here("data/single_plot_null_or_not_sim_only/mixed"),
-          recursive = TRUE)
-
-max_train_id <- as.integer(gsub(".png", "", list.files("data/single_plot_null_or_not_sim_only/mixed/train/not_null"))) %>%
-  max()
-
-max_test_id <- as.integer(gsub(".png", "", list.files("data/single_plot_null_or_not_sim_only/mixed/test/not_null"))) %>%
-  max()
-
-for (file in list.files(here::here("data/single_plot_null_or_not_sim_only/heter/train/not_null"))) {
-  file.copy(here::here("data/single_plot_null_or_not_sim_only/heter/train/not_null", file),
-            here::here("data/single_plot_null_or_not_sim_only/mixed/train/not_null", 
-                       paste0(as.integer(gsub(".png", "", file)) + max_train_id, ".png")))
-}
-
-for (file in list.files(here::here("data/single_plot_null_or_not_sim_only/heter/train/null"))) {
-  file.copy(here::here("data/single_plot_null_or_not_sim_only/heter/train/null", file),
-            here::here("data/single_plot_null_or_not_sim_only/mixed/train/null", 
-                       paste0(as.integer(gsub(".png", "", file)) + max_train_id, ".png")))
-}
-
-for (file in list.files(here::here("data/single_plot_null_or_not_sim_only/heter/test/not_null"))) {
-  file.copy(here::here("data/single_plot_null_or_not_sim_only/heter/test/not_null", file),
-            here::here("data/single_plot_null_or_not_sim_only/mixed/test/not_null", 
-                       paste0(as.integer(gsub(".png", "", file)) + max_test_id, ".png")))
-}
-
-for (file in list.files(here::here("data/single_plot_null_or_not_sim_only/heter/test/null"))) {
-  file.copy(here::here("data/single_plot_null_or_not_sim_only/heter/test/null", file),
-            here::here("data/single_plot_null_or_not_sim_only/mixed/test/null", 
-                       paste0(as.integer(gsub(".png", "", file)) + max_test_id, ".png")))
+mixed_train_dest <- here::here("data/single_plot_null_or_not_sim_only/mixed/train")
+mixed_test_dest <- here::here("data/single_plot_null_or_not_sim_only/mixed/test")
+for (violation in c("poly", "heter", "non_normal")) {
+  train_from <- here::here(glue::glue("data/single_plot_null_or_not_sim_only/{violation}/train/."))
+  test_from <- here::here(glue::glue("data/single_plot_null_or_not_sim_only/{violation}/test/."))
+  system(glue::glue("cp -r {train_from} {mixed_train_dest}"))
+  system(glue::glue("cp -r {test_from} {mixed_test_dest}"))
 }
