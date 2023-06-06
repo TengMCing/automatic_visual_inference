@@ -1,7 +1,7 @@
 source(here::here("scripts/shared/keras_applications_api.R"))
 
 build_with_base_model <- function(model_name = "vgg16", 
-                                  dense_nodes = c(256L),
+                                  dense_nodes = c(512),
                                   dropout_rate = 0.2,
                                   batch_normalization = TRUE) {
   # Get train and validation data
@@ -46,9 +46,6 @@ build_with_base_model <- function(model_name = "vgg16",
 }
 
 compile_with_learning_rate <- function(model, learning_rate = 0.001) {
-  # At this time, the v2.11+ optimizer `tf.keras.optimizers.Adam` runs 
-  # slowly on M1/M2 Macs, please use the legacy Keras optimizer instead, 
-  # located at `tf.keras.optimizers.legacy.Adam`.
   model$compile(optimizer =  keras$optimizers$Adam(learning_rate = learning_rate),
                 loss = "categorical_crossentropy",
                 metrics = list("categorical_accuracy"))
@@ -60,18 +57,19 @@ c(this_model, train_set, val_set) %<-% build_with_base_model()
 compile_with_learning_rate(this_model, 0.001)
 
 callbacks <- init_callbacks(log_dir = here::here("logs/single_plot_null_or_not_sim_only/mixed"),
-                            patience = 20L,
+                            patience = 10L,
                             histogram_freq = 1L,
                             reduce_lr_on_plateau = TRUE,
                             factor = 0.5,
-                            lr_patience = 5L,
+                            lr_patience = 3L,
                             csv_filename = here::here("history/single_plot_null_or_not_sim_only/mixed.csv"))
 
 # tensorflow::tensorboard(here::here("logs"))
 
 fit_history <- this_model$fit(x = train_set,
                               epochs = 10000L,
-                              validation_data = val_set)
+                              validation_data = val_set,
+                              callbacks = callbacks)
 
 this_model$save(here::here("models/single_plot_null_or_not_sim_only/mixed"))
 # 
