@@ -51,7 +51,7 @@ compile_with_learning_rate <- function(model, learning_rate = 0.001) {
   # located at `tf.keras.optimizers.legacy.Adam`.
   model$compile(optimizer =  keras$optimizers$Adam(learning_rate = learning_rate),
                 loss = "categorical_crossentropy",
-                metrics = "categorical_accuracy")
+                metrics = list("categorical_accuracy"))
   return(model)
 }
 
@@ -71,71 +71,70 @@ callbacks <- init_callbacks(log_dir = here::here("logs/single_plot_null_or_not_s
 
 fit_history <- this_model$fit(x = train_set,
                               epochs = 10000L,
-                              validation_data = val_set,
-                              callbacks = callbacks)
+                              validation_data = val_set)
 
 this_model$save(here::here("models/single_plot_null_or_not_sim_only/mixed"))
-
-test_set <- image_data_generator()$flow_from_directory(directory = here::here("data/single_plot_null_or_not_sim_only/mixed/test"),
-                                                       target_size = keras_api$get_input_shape()[1:2],
-                                                       batch_size = 32L,
-                                                       shuffle = FALSE,
-                                                       save_to_dir = FALSE)
-
-test_set2 <- image_data_generator()$flow_from_directory(directory = here::here("data/single_plot_reject_or_not/mixed/train"),
-                                                        target_size = keras_api$get_input_shape()[1:2],
-                                                        batch_size = 32L,
-                                                        shuffle = FALSE,
-                                                        save_to_dir = FALSE)
-
-xx <- this_model$predict(test_set) %>%
-  as.data.frame() %>%
-  pull(V1)
-
-mixed_pred <- this_model$predict(test_set2) %>%
-  as.data.frame() %>%
-  pull(V1)
-
-
-ggplot() +
-  geom_histogram(aes(mixed_pred))
-
-ggplot() +
-  geom_histogram(aes(xx))
-
-data.frame(pred = mixed_pred,
-           class = test_set2$labels) %>%
-  ggplot() +
-  geom_histogram(aes(pred)) +
-  facet_wrap(~class) +
-  ggtitle("pr(not_null)")
-  
-
-yardstick::conf_mat(data.frame(truth = factor(test_set2$labels),
-                               estimate = factor(as.integer(mixed_pred < 0.5))),
-                    truth = truth,
-                    estimate = estimate)
-
-yardstick::bal_accuracy(data.frame(truth = factor(test_set2$labels),
-                                   estimate = factor(as.integer(mixed_pred < 0.5))),
-                        truth = truth,
-                        estimate = estimate)
-
-yardstick::roc_curve(data.frame(truth = factor(test_set2$labels),
-                                estimate = mixed_pred),
-                     truth = truth,
-                     estimate = estimate) %>%
-  autoplot()
-
-(function() {
-  user_input <- readline("Are you sure you want to stop the TensorBoard server? [y/n] ")
-  if (user_input != 'y') {
-    cat("Keep the TensorBoard server alive.")
-    return(invisible(NULL))
-  } else {
-    tensorflow::tensorboard(here::here("logs"), action = "stop")
-  }
-})()
+# 
+# test_set <- image_data_generator()$flow_from_directory(directory = here::here("data/single_plot_null_or_not_sim_only/mixed/test"),
+#                                                        target_size = keras_api$get_input_shape()[1:2],
+#                                                        batch_size = 32L,
+#                                                        shuffle = FALSE,
+#                                                        save_to_dir = FALSE)
+# 
+# test_set2 <- image_data_generator()$flow_from_directory(directory = here::here("data/single_plot_reject_or_not/mixed/train"),
+#                                                         target_size = keras_api$get_input_shape()[1:2],
+#                                                         batch_size = 32L,
+#                                                         shuffle = FALSE,
+#                                                         save_to_dir = FALSE)
+# 
+# xx <- this_model$predict(test_set) %>%
+#   as.data.frame() %>%
+#   pull(V1)
+# 
+# mixed_pred <- this_model$predict(test_set2) %>%
+#   as.data.frame() %>%
+#   pull(V1)
+# 
+# 
+# ggplot() +
+#   geom_histogram(aes(mixed_pred))
+# 
+# ggplot() +
+#   geom_histogram(aes(xx))
+# 
+# data.frame(pred = mixed_pred,
+#            class = test_set2$labels) %>%
+#   ggplot() +
+#   geom_histogram(aes(pred)) +
+#   facet_wrap(~class) +
+#   ggtitle("pr(not_null)")
+#   
+# 
+# yardstick::conf_mat(data.frame(truth = factor(test_set2$labels),
+#                                estimate = factor(as.integer(mixed_pred < 0.5))),
+#                     truth = truth,
+#                     estimate = estimate)
+# 
+# yardstick::bal_accuracy(data.frame(truth = factor(test_set2$labels),
+#                                    estimate = factor(as.integer(mixed_pred < 0.5))),
+#                         truth = truth,
+#                         estimate = estimate)
+# 
+# yardstick::roc_curve(data.frame(truth = factor(test_set2$labels),
+#                                 estimate = mixed_pred),
+#                      truth = truth,
+#                      estimate = estimate) %>%
+#   autoplot()
+# 
+# (function() {
+#   user_input <- readline("Are you sure you want to stop the TensorBoard server? [y/n] ")
+#   if (user_input != 'y') {
+#     cat("Keep the TensorBoard server alive.")
+#     return(invisible(NULL))
+#   } else {
+#     tensorflow::tensorboard(here::here("logs"), action = "stop")
+#   }
+# })()
 
 # train:
 #   simulated null, not_null
