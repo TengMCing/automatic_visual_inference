@@ -107,7 +107,7 @@ draw_plots <- function(violation, not_null, null, n, meta_vector) {
 # Ensure the support of the predictor is [-1, 1]
 stand_dist <- function(x) (x - min(x))/max(x - min(x)) * 2 - 1
 
-SAMPLE_PER_PARAMETER <- list(train = 100, test = 10)
+SAMPLE_PER_PARAMETER <- list(train = 5, test = 1)
 
 # Define the x variable
 rand_uniform_x <- rand_uniform(-1, 1)

@@ -1,7 +1,6 @@
-library(tensorflow)
-library(keras)
 library(tidyverse)
-
+library(keras)
+library(tensorflow)
 
 # keras_api ---------------------------------------------------------------
 
@@ -615,7 +614,7 @@ keras_api$init_model <- function(model_name = "vgg16", ...) {
 #' generator. 
 keras_api$flow_images_from_directory <- function(directory,
                                                  model_name = "vgg16",
-                                                 generator = image_data_generator(validation_split = 0.2),
+                                                 generator = keras$preprocessing$image$ImageDataGenerator(validation_split = 0.2),
                                                  target_size = keras_api$get_input_shape(model_name)[1:2],
                                                  color_mode = "rgb",
                                                  classes = reticulate::py_none(),
@@ -778,37 +777,38 @@ init_callbacks <- function(early_stopping = TRUE,
                            append = FALSE) {
   callbacks <- list()
   if (early_stopping) {
-    callbacks$es <- callback_early_stopping(min_delta = min_delta,
-                                            patience = patience,
-                                            baseline = baseline,
-                                            restore_best_weights = restore_best_weights,
-                                            verbose = early_stopping_verbose)
+    callbacks$es <- keras$callbacks$EarlyStopping(min_delta = min_delta,
+                                                  patience = patience,
+                                                  baseline = baseline,
+                                                  restore_best_weights = restore_best_weights,
+                                                  verbose = early_stopping_verbose)
   }
   
   if (tensorboard) {
     if (!dir.exists(dirname(log_dir))) dir.create(dirname(log_dir))
-    callbacks$tb <- callback_tensorboard(log_dir = log_dir,
-                                         histogram_freq = histogram_freq,
-                                         write_graph = write_graph,
-                                         write_grads = write_grads,
-                                         write_images = write_images,
-                                         update_freq = update_freq)
+    callbacks$tb <- keras$callbacks$TensorBoard(log_dir = log_dir,
+                                                histogram_freq = histogram_freq,
+                                                write_graph = write_graph,
+                                                write_grads = write_grads,
+                                                write_images = write_images,
+                                                update_freq = update_freq)
   }
   
   if (reduce_lr_on_plateau) {
-    callbacks$rlr <- callback_reduce_lr_on_plateau(factor = factor,
-                                                   patience = lr_patience,
-                                                   min_lr = min_lr,
-                                                   verbose = lr_verbose)
+    callbacks$rlr <- keras$callbacks$ReduceLROnPlateau(factor = factor,
+                                                       patience = lr_patience,
+                                                       min_lr = min_lr,
+                                                       verbose = lr_verbose)
   }
   
   if (terminate_on_nan) {
-    callbacks$nan <- callback_terminate_on_naan()
+    callbacks$nan <- keras$callbacks$TerminateOnNaN()
   }
   
   if (csv_Logger) {
     if (!dir.exists(dirname(csv_filename))) dir.create(dirname(csv_filename))
-    callbacks$csv <- callback_csv_logger(filename = csv_filename, append = append)
+    callbacks$csv <- keras$callbacks$CSVLogger(filename = csv_filename, 
+                                               append = append)
   }
   
   return(unname(callbacks))
@@ -826,8 +826,7 @@ suppressWarnings(try(keras[["__version__"]]))
 
 cli::cli_bullets(c(
   "{.alert-success Using}",
+  "*" = "{.strong Python} {.version {reticulate::py_version()}}",
   "*" = "{.strong Python} {.pkg keras} {.version {keras[['__version__']]}}",
-  "*" = "{.strong Python} {.pkg tensorflow} {.version {tf[['__version__']]}}",
-  "*" = "{.strong R} {.pkg tensorflow} {.version {packageVersion('keras')}}",
-  "*" = "{.strong R} {.pkg tensorflow} {.version {packageVersion('tensorflow')}}"
+  "*" = "{.strong Python} {.pkg tensorflow} {.version {tf[['__version__']]}}"
 ))
