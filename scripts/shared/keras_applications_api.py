@@ -340,7 +340,7 @@ class keras_app_api:
                 performant on GPU/DSP.
             dropout_rate (float): Dropout rate of the top layer.
             include_preprocessing (bool):  Whether to include the 
-                preprocessing layer at the bottomt of the network.
+                preprocessing layer at the bottom of the network.
 
         Returns:
             A `Keras.Model` instance.  
@@ -530,10 +530,32 @@ class keras_app_api:
             directory (str): Path to images. The directory should contain 
                 one folder for each class.
             model_name (str): The keras application name.
-            generator (`keras.preprocessing.image.ImageDataGenerator` instance): sf
+            generator (`keras.preprocessing.image.ImageDataGenerator` instance): Image generator. 
+                By default it will set `validation_split=0.2`.
+            target_size (int): Length 2 tuple indicating the image size.
+            color_mode (str): Color mode of the image.
+            classes (str): Could be `None` (class labels inferred from the 
+                subdirectory), or a length 2 tuple indicating the class names.
+            class_mode (str): One of `"categorical"`, `"binary"`, `"spare"`, 
+                `"input"` or `None`.
+            batch_size (int): Batch size.
+            shuffle (bool): Wether to shuffle the images.
+            seed (int): Seed for shuffling.
+            save_to_dir (str): Path to save augmented images.
+            save_prefix (str): Prefix of saved images.
+            save_format (str): Format of saved images. One of `"png"`, 
+                `"jpeg"`, `"bmp"`, `"pdf"`, `"ppm"`, `"gif"`, `"tif"`, `"jpg"`.
+            follow_links (bool): Whether to follow symlinks inside 
+                class subdirectories.
+            interpolation (str): Interpolation method used to resize image. 
+                One of `"nearest"`, `"bilinear"`, `"bicubic"`. 
+                Optionally supported `"lanzcos"` if `PIL.__version__ > "1.1.3"`. 
+                Optionally supported `"box"` and `"hamming"` if 
+                `PIL.__version__ > "3.4.0"`.
 
         Returns:
-            A function to construct a `Keras.Model`.  
+            A length 2 tuple containing the training images generator and the
+            validation images generator.  
         """
 
         if (generator is None):
@@ -577,6 +599,17 @@ class keras_app_api:
 
     @staticmethod
     def preprocess_input(x, data_format=None, model_name="vgg16"):
+        """Preprocess the input to the keras application.
+
+        Args:
+            x (keras tensor): The input.
+            data_format (str): Either `"channel_first"` or `"channel_last"`.
+            model_name (str): One of available Keras applications. 
+
+        Returns:
+            A keras tensor.
+        """
+
         return keras_app_api.app_info[model_name]["preprocessor"](x, data_format=data_format)
 
     @staticmethod
@@ -602,6 +635,49 @@ class keras_app_api:
                        csv_logger=True,
                        csv_filename=None,
                        append=False):
+        """Create a list of callbacks.
+
+        Args:
+            early_stopping (bool): Whether to enable early stopping.
+            min_delta (float): Minimum change required to be considered 
+                as improvement.
+            patience (int): Number of epochs to wait before stopping the 
+                training due to lack of improvement.
+            baseline (float): Baseline value to reach in `n` (`n = patience`) 
+                epochs.
+            restore_best_weights (bool): Whether to restore weights from 
+                the best epoch.
+            early_stopping_verbose (bool): Whether to turn on verbose mode for
+                early stopping.
+            tensorboard (bool): Whether to enable TensorBoard.
+            log_dir (str): Path to save the TensorBoard log.
+            histogram_freq (int): Frequency in epochs to compute 
+                activation histograms in TensorBoard.
+            write_graph (bool): Whether to visualize the network in TensorBoard.
+            write_grads (bool): Whether to visualize gradient histogram in 
+                TensorBoard.
+            write_images (bool): Whether to visualize model weights as images
+                in TensorBoard.
+            update_freq (str/int): `"epoch"`, `"batch"` or integer number of 
+                batches to update TensorBoard log.
+            reduce_lr_on_plateau (bool): Whether to reduce learning rate 
+                once learning stagnates.
+            factor (float): Learning rate multiplier once learning stagnates.
+            lr_patience (int): Number of epochs before reducing the learning
+                rate due to learning stagnates.
+            min_lr (float): Lower bound of learning rate.
+            lr_verbose (bool): Whether to turn on verbose mode for learning 
+                rate reduction.
+            terminate_on_nan (bool): Whether to terminate when encounter NAN 
+                loss.
+            csv_logger (bool): Whether to save training history as a csv file.
+            csv_filename (str): Path to save csv file.
+            append (bool): Overwrite or append to the csv file.
+
+        Returns:
+            A list of `keras.callbacks.Callback` instances.
+        """
+
         callbacks = []
 
         if (early_stopping):
@@ -646,10 +722,16 @@ class keras_app_api:
 
     @staticmethod
     def api_check():
-        rich.print(f"Using Python: {sys.version}")
-        rich.print(f"Using tensorflow: {tf.__version__}")
-        rich.print(f"Using keras: {keras.__version__}")
-        rich.print(f"Available GPUs: {tf.config.list_physical_devices('GPU')}")
+        """Check the keras API status.
+        """
+
+        rich.print("\nAPI status:")
+        rich.print(f"\tUsing Python: {sys.version}")
+        rich.print(f"\tUsing tensorflow: {tf.__version__}")
+        rich.print(f"\tUsing keras: {keras.__version__}")
+        rich.print(
+            f"\tAvailable GPUs: {tf.config.list_physical_devices('GPU')}")
+        rich.print("\n")
 
 
 keras_app_api.api_check()
