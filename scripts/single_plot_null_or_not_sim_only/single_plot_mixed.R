@@ -58,7 +58,6 @@ compile_with_learning_rate(this_model, 0.001)
 
 callbacks <- init_callbacks(log_dir = here::here("logs/single_plot_null_or_not_sim_only/mixed"),
                             patience = 10L,
-                            histogram_freq = 1L,
                             reduce_lr_on_plateau = TRUE,
                             factor = 0.5,
                             lr_patience = 3L,
@@ -67,7 +66,7 @@ callbacks <- init_callbacks(log_dir = here::here("logs/single_plot_null_or_not_s
 # tensorflow::tensorboard(here::here("logs"))
 
 fit_history <- this_model$fit(x = train_set,
-                              epochs = 10000L,
+                              epochs = 1000L,
                               validation_data = val_set,
                               callbacks = callbacks)
 

@@ -22,7 +22,7 @@ train_dir = os.path.join(project_dir,
 
 train_set, val_set = keras_app_api.flow_images_from_dir(directory=train_dir,
                                                         model_name="vgg16",
-                                                        class_mode="binary",
+                                                        class_mode="categorical",
                                                         batch_size=32)
 
 vgg16 = keras_app_api.get_constructor("vgg16")
@@ -32,18 +32,17 @@ model_input = keras.layers.Input(shape=keras_app_api.get_input_shape("vgg16"))
 model_output = keras_app_api.preprocess_input(model_input, model_name="vgg16")
 model_output = base_model(model_output)
 model_output = keras.layers.GlobalAveragePooling2D()(model_output)
-model_output = keras.layers.Dense(512,
-                                  activation="relu",
-                                  kernel_regularizer=keras.regularizers.L1L2(l1=1e-5, l2=1e-4))(model_output)
+model_output = keras.layers.Dense(512, kernel_regularizer=keras.regularizers.L1L2(l1=1e-5, l2=1e-4))(model_output)
 model_output = keras.layers.Dropout(0.2)(model_output)
-model_output = keras.layers.Dense(1, activation="sigmoid")(model_output)
+model_output = keras.layers.Activation(activation="relu")(model_output)
+model_output = keras.layers.Dense(2, activation="softmax")(model_output)
 this_model = keras.Model(model_input, model_output)
 
 this_model.summary()
 
 this_model.compile(keras.optimizers.legacy.Adam(learning_rate=1e-3),
-                   loss="binary_crossentropy",
-                   metrics=["accuracy"])
+                   loss="categorical_crossentropy",
+                   metrics=["categorical_accuracy"])
 
 log_dir = os.path.join(project_dir,
                        "logs",
@@ -62,7 +61,7 @@ callbacks = keras_app_api.init_callbacks(log_dir=log_dir,
                                          csv_filename=csv_dir)
 
 fit_history = this_model.fit(x=train_set,
-                             epochs=10,
+                             epochs=1000,
                              validation_data=val_set,
                              callbacks=callbacks)
 

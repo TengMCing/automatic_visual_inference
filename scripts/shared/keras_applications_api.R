@@ -130,13 +130,15 @@ keras_api$model$xception <- function(include_top = TRUE,
                                      input_tensor = reticulate::py_none(), 
                                      input_shape = reticulate::py_none(), 
                                      pooling = reticulate::py_none(), 
-                                     classes = 1000L) {
+                                     classes = 1000L,
+                                     classifier_activation = "softmax") {
   keras$applications$Xception(include_top = include_top,
                               weights = weights,
                               input_tensor = input_tensor,
                               input_shape = input_shape,
                               pooling = pooling,
-                              classes = classes)
+                              classes = classes,
+                              classifier_activation = classifier_activation)
 }
 
 #' Init a Keras model.
@@ -624,7 +626,8 @@ keras_api$flow_images_from_directory <- function(directory,
                                                  save_prefix = "",
                                                  save_format = "png",
                                                  follow_links = FALSE,
-                                                 interpolation = "nearest") {
+                                                 interpolation = "nearest",
+                                                 keep_aspect_ratio = FALSE) {
   
   train_set <- generator$flow_from_directory(directory = directory,
                                              target_size = target_size,
@@ -639,6 +642,7 @@ keras_api$flow_images_from_directory <- function(directory,
                                              save_format = save_format,
                                              follow_links = follow_links,
                                              interpolation = interpolation,
+                                             keep_aspect_ratio = keep_aspect_ratio,
                                              subset = "training")
   
   val_set <- generator$flow_from_directory(directory = directory,
@@ -654,6 +658,7 @@ keras_api$flow_images_from_directory <- function(directory,
                                            save_format = save_format,
                                            follow_links = follow_links,
                                            interpolation = interpolation,
+                                           keep_aspect_ratio = keep_aspect_ratio,
                                            subset = "validation")
   return(list(train_set, val_set))
 }
