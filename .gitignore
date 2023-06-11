@@ -11,3 +11,7 @@ data/single_plot/
 
 data/single_plot_reject_or_not/
 data/single_plot_null_or_not_sim_only/
+
+scripts/shared/__pycache__/
+
+.vscode/
