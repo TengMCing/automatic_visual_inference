@@ -17,7 +17,7 @@ else:
 train_dir = os.path.join(project_dir,
                          "data",
                          "single_plot_null_or_not_sim_only",
-                         "mixed",
+                         "poly",
                          "train")
 
 train_set, val_set = keras_app_api.flow_images_from_dir(directory=train_dir,
@@ -49,17 +49,17 @@ this_model.compile(keras.optimizers.legacy.Adam(learning_rate=1e-3),
 log_dir = os.path.join(project_dir,
                        "logs",
                        "single_plot_null_or_not_sim_only",
-                       "mixed")
+                       "poly")
 csv_dir = os.path.join(project_dir,
                        "history",
                        "single_plot_null_or_not_sim_only",
-                       "mixed.csv")
+                       "poly.csv")
 callbacks = keras_app_api.init_callbacks(log_dir=log_dir,
                                          patience=10,
                                          update_freq=20,
                                          reduce_lr_on_plateau=True,
                                          factor=0.5,
-                                         lr_patience=3,
+                                         lr_patience=5,
                                          csv_filename=csv_dir)
 
 fit_history = this_model.fit(x=train_set,
@@ -70,5 +70,5 @@ fit_history = this_model.fit(x=train_set,
 model_dir = os.path.join(project_dir,
                          "models",
                          "single_plot_null_or_not_sim_only",
-                         "mixed")
+                         "poly")
 this_model.save(model_dir)

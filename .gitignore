@@ -15,3 +15,5 @@ data/single_plot_null_or_not_sim_only/
 scripts/shared/__pycache__/
 
 .vscode/
+
+models/
