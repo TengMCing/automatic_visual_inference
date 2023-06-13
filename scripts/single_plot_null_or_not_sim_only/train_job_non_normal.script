@@ -1,0 +1,22 @@
+#!/bin/bash
+#SBATCH --job-name=SinglePlotNullOrNotTrainJobNonNormal
+#SBATCH --account=sk54
+#SBATCH --time=6:00:00
+#SBATCH --partition=gpu
+#SBATCH --ntasks=6
+#SBATCH --gres=gpu:1
+#SBATCH --mem=60G
+
+#SBATCH --mail-user=weihao.li@monash.edu
+#SBATCH --mail-type=BEGIN,END,FAIL
+
+source ~/.bashrc
+conda activate tf
+module load R/4.0.5
+
+cd ~/sk54/patrickli/automatic_visual_inference
+python scripts/single_plot_null_or_not_sim_only/single_plot_heter.py
+
+
+
+
