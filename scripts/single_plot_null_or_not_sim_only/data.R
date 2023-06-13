@@ -301,3 +301,38 @@ for (violation in c("poly", "heter", "non_normal")) {
   system(glue::glue("cp -r {train_from} {mixed_train_dest}"))
   system(glue::glue("cp -r {test_from} {mixed_test_dest}"))
 }
+
+# mixed_multiclass_data ---------------------------------------------------
+
+if (!dir.exists(here::here("data/single_plot_null_or_not_sim_only/mixed_multiclass"))) dir.create(here::here("data/single_plot_null_or_not_sim_only/mixed_multiclass"))
+if (!dir.exists(here::here("data/single_plot_null_or_not_sim_only/mixed_multiclass/train"))) dir.create(here::here("data/single_plot_null_or_not_sim_only/mixed_multiclass/train"))
+if (!dir.exists(here::here("data/single_plot_null_or_not_sim_only/mixed_multiclass/test"))) dir.create(here::here("data/single_plot_null_or_not_sim_only/mixed_multiclass/test"))
+
+for (violation in c("poly", "heter", "non_normal")) {
+  train_not_null_from <- here::here(glue::glue("data/single_plot_null_or_not_sim_only/{violation}/train/not_null/."))
+  system(glue::glue("cp -r {train_not_null_from} {here::here(paste0('data/single_plot_null_or_not_sim_only/mixed_multiclass/train/', violation))}"))
+
+  test_not_null_from <- here::here(glue::glue("data/single_plot_null_or_not_sim_only/{violation}/test/not_null/.")) 
+  system(glue::glue("cp -r {test_not_null_from} {here::here(paste0('data/single_plot_null_or_not_sim_only/mixed_multiclass/test/', violation))}"))
+}
+
+
+num_null_train_plots <- length(list.files("data/single_plot_null_or_not_sim_only/non_normal/train/not_null/"))
+num_null_test_plots <- length(list.files("data/single_plot_null_or_not_sim_only/non_normal/test/not_null/"))
+
+set.seed(10086)
+train_null_ids <- sample(list.files(paste0(mixed_train_dest, "/null")), num_null_train_plots)
+test_null_ids <- sample(list.files(paste0(mixed_test_dest, "/null")), num_null_test_plots)
+
+train_null_from <- paste0(mixed_train_dest, "/null")
+test_null_from <- paste0(mixed_test_dest, "/null")
+if (!dir.exists(here::here("data/single_plot_null_or_not_sim_only/mixed_multiclass/train/null"))) dir.create(here::here("data/single_plot_null_or_not_sim_only/mixed_multiclass/train/null"))
+if (!dir.exists(here::here("data/single_plot_null_or_not_sim_only/mixed_multiclass/test/null"))) dir.create(here::here("data/single_plot_null_or_not_sim_only/mixed_multiclass/test/null"))
+
+for (id in train_null_ids) {
+  system(glue::glue("cp {paste0(train_null_from, '/', id)} {here::here(paste0('data/single_plot_null_or_not_sim_only/mixed_multiclass/train/null/', id))}"))
+}
+
+for (id in test_null_ids) {
+  system(glue::glue("cp {paste0(test_null_from, '/', id)} {here::here(paste0('data/single_plot_null_or_not_sim_only/mixed_multiclass/test/null/', id))}"))
+}
