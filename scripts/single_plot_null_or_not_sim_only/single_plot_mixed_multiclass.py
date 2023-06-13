@@ -37,7 +37,7 @@ model_output = keras.layers.Dense(
 model_output = keras.layers.BatchNormalization(fused=False)(model_output)
 model_output = keras.layers.Dropout(0.2)(model_output)
 model_output = keras.layers.Activation(activation="relu")(model_output)
-model_output = keras.layers.Dense(2, activation="softmax")(model_output)
+model_output = keras.layers.Dense(4, activation="softmax")(model_output)
 this_model = keras.Model(model_input, model_output)
 
 this_model.summary()
