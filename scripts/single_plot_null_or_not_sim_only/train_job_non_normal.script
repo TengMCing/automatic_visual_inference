@@ -15,7 +15,7 @@ conda activate tf
 module load R/4.0.5
 
 cd ~/sk54/patrickli/automatic_visual_inference
-python scripts/single_plot_null_or_not_sim_only/single_plot_heter.py
+python scripts/single_plot_null_or_not_sim_only/single_plot_non_normal.py
 
 
 
