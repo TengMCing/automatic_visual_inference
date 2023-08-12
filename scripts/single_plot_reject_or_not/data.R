@@ -65,6 +65,8 @@ not_rejected_plots <- null_lineup_p_values %>%
 poly_not_rejected_plots <- not_rejected_plots
 heter_not_rejected_plots <- not_rejected_plots
 
+new_id <- 0
+
 # Draw all single plots
 draw_single_plots <- function(plots, folder = "reject") {
   plots_to_save <- plots %>%
@@ -89,9 +91,8 @@ draw_single_plots <- function(plots, folder = "reject") {
     })) %>%
     pull(p)
   
-  new_id <- 0
   for (this_plot in plots_to_save) {
-    new_id <- new_id + 1
+    new_id <<- new_id + 1
     
     # The lineup layout contains 4 rows and 5 cols
     ggsave(glue::glue(here::here("data/single_plot_reject_or_not/{folder}/{new_id}.png")), 
