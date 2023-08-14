@@ -21,6 +21,7 @@ show_plot <- function(plot_uid, folder = here::here("data")) {
 
 library(yardstick)
 library(tidyverse)
+library(visage)
 
 # mixed -------------------------------------------------------------------
 
@@ -45,3 +46,30 @@ bind_rows(mutate(mixed_test_pred, type = "mixed")) %>%
   group_by(type) %>%
   roc_curve(truth = truth, not_reject) %>%
   autoplot()
+
+mixed_test_pred <- mixed_test_pred %>%
+  mutate(unique_lineup_id = gsub(".*/(.*)_(.*).png", "\\1", mixed_test_set$filenames)) %>%
+  mutate(plot = gsub(".*/(.*)_(.*).png", "\\2", mixed_test_set$filenames)) %>%
+  mutate(plot = as.integer(plot)) %>%
+  left_join(vi_survey %>% group_by(unique_lineup_id) %>% summarise(across(everything(), first))) %>%
+  mutate(effect_size = ifelse(answer == plot, effect_size, 0))
+
+mixed_test_pred %>%
+  mutate(wrong = pred != truth) %>%
+  mutate(wrong = c("Same", "Different")[wrong + 1]) %>%
+  ggplot() +
+  ggbeeswarm::geom_quasirandom(aes(effect_size, pred, col = wrong), groupOnX = FALSE) +
+  facet_wrap(~type, ncol = 1, scales = "free_x") +
+  labs(col = "") +
+  scale_x_sqrt() +
+  ylab("Prediction")
+
+mixed_test_pred %>%
+  mutate(wrong = pred != truth) %>%
+  mutate(wrong = c("Same", "Different")[wrong + 1]) %>%
+  filter(type == "polynomial") %>%
+  filter(wrong == "Different") %>%
+  filter(pred == "not_reject") %>%
+  mutate(filename = paste0(unique_lineup_id, "_", plot)) %>%
+  pull(filename) %>%
+  map(~show_plot(.x))
