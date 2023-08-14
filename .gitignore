@@ -17,3 +17,5 @@ scripts/shared/__pycache__/
 .vscode/
 
 models/
+
+scripts/eval/eval_null_or_not_cache/

@@ -1,0 +1,320 @@
+---
+title: "Evaluation"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(tensorflow)
+library(keras)
+
+# mixed, poly, heter: null or not_null
+# multiclass: null, poly, heter, non_normal
+
+mixed_mod <- load_model_tf(here::here("models/single_plot_null_or_not_sim_only/mixed"))
+poly_mod <- load_model_tf(here::here("models/single_plot_null_or_not_sim_only/poly"))
+heter_mod <- load_model_tf(here::here("models/single_plot_null_or_not_sim_only/heter"))
+multiclass_mod <- load_model_tf(here::here("models/single_plot_null_or_not_sim_only/mixed_multiclass"))
+
+mixed_test_set <- flow_images_from_directory(here::here("data/single_plot_null_or_not_sim_only/mixed/test"), 
+                                             target_size = c(224L, 224L),
+                                             shuffle = FALSE)
+poly_test_set <- flow_images_from_directory(here::here("data/single_plot_null_or_not_sim_only/poly/test"), 
+                                            target_size = c(224L, 224L),
+                                            shuffle = FALSE)
+heter_test_set <- flow_images_from_directory(here::here("data/single_plot_null_or_not_sim_only/heter/test"), 
+                                             target_size = c(224L, 224L),
+                                             shuffle = FALSE)
+multiclass_test_set <- flow_images_from_directory(here::here("data/single_plot_null_or_not_sim_only/mixed_multiclass/test"), 
+                                                  target_size = c(224L, 224L),
+                                                  shuffle = FALSE)
+```
+
+```{r}
+show_plot <- function(plot_uid, folder = here::here("data")) {
+  imager::load.image(system(glue::glue("find {folder} -name '{plot_uid}.png'"), intern = TRUE)[1]) %>%
+    plot()
+}
+```
+
+```{r}
+library(yardstick)
+library(tidyverse)
+
+meta_data <- readRDS(here::here("data/single_plot_null_or_not_sim_only/meta.rds")) %>%
+  as_tibble()
+
+library(kableExtra)
+```
+
+# Mixed model
+
+This model is trained with 50% null plots and 50% not null plots. In not null plots, there are three different violations namely non-linearity, heteroskedasticiy and non-normality. 
+
+The following is its performance on the test set. 
+
+```{r cache = TRUE}
+mixed_test_pred <- as_tibble(as.data.frame(mixed_mod$predict(mixed_test_set)))
+```
+
+
+```{r}
+names(mixed_test_pred) <- names(mixed_test_set$class_indices)
+mixed_test_pred <- mixed_test_pred %>%
+  mutate(truth = names(mixed_test_set$class_indices)[c(mixed_test_set$classes) + 1]) %>%
+  mutate(pred = names(mixed_test_set$class_indices)[(null > not_null) + 1]) %>%
+  mutate(truth = factor(truth), pred = factor(pred))
+
+accuracy(mixed_test_pred, 
+         truth = truth, 
+         estimate = pred) %>%
+  kbl("html", col.names = c("Metric", "Estimator", "Estimate")) %>%
+  kable_minimal() %>%
+  kable_styling(full_width = F)
+
+conf_mat(mixed_test_pred,
+         truth = truth,
+         estimate = pred) %>% 
+  .[["table"]] %>%
+  `rownames<-`(c("Not null", "Null")) %>%
+  kbl("html", col.names = c("Not null", "Null")) %>%
+  kable_minimal(full_width = F)
+```
+
+```{r}
+mixed_test_detail <- mixed_test_pred %>%
+  mutate(plot_uid = gsub(".*/(.*).png", "\\1", mixed_test_set$filenames) %>%
+           as.numeric()) %>%
+  left_join(meta_data)
+```
+
+
+```{r}
+mixed_test_detail %>%
+  mutate(violation = ifelse(!is.na(shape), "poly", "other")) %>%
+  mutate(violation = ifelse(!is.na(a), "heter", violation)) %>%
+  mutate(violation = ifelse(!is.na(e_dist), "non_normal", violation)) %>%
+  mutate(violation = ifelse(truth == "null", "null", violation)) %>%
+  group_by(violation) %>%
+  summarise(acc = mean(truth == pred), 
+            correct = sum(truth == pred), 
+            total = n()) %>%
+  kbl("html", col.names = c("Violation", "Accuracy", "Correct", "Total")) %>%
+  kable_minimal(full_width = F)
+```
+
+
+```{r}
+mixed_test_detail %>%
+  filter(truth == "not_null") %>%
+  filter(!is.na(shape)) %>%
+  mutate(e_sigma = factor(e_sigma), shape = factor(shape), n = factor(n)) %>%
+  group_by(shape, e_sigma, n) %>%
+  summarise(rate = mean(not_null > 0.5)) %>%
+  ggplot() +
+  geom_point(aes(e_sigma, rate, col = n)) +
+  geom_line(aes(e_sigma, rate, col = n, group = n)) +
+  facet_wrap(~shape, labeller = label_both) +
+  ggtitle("For residual plots with polynomial visual features", subtitle = "The accuracy of predicting not null is") +
+  xlab("sigma of the error term") +
+  ylab("Accuracy") +
+  ylim(c(0, 1))
+```
+
+
+```{r}
+mixed_test_detail %>%
+  filter(truth == "not_null") %>%
+  filter(!is.na(shape)) %>%
+  ggplot() +
+  geom_boxplot(aes(factor(e_sigma), not_null), outlier.alpha = 0) +
+  geom_jitter(aes(factor(e_sigma), not_null), alpha = 0.3, height = 0, width = 0.2) +
+  ggtitle("For residual plots with polynomial visual features", subtitle = "The predicted probability of not null is") +
+  facet_wrap(~shape, labeller = label_both) +
+  xlab("sigma of the error term") +
+  ylab("Predicted probability")
+```
+
+The model predicts the following plot to be not null with $\hat{p} = 55\%$.
+
+```{r}
+mixed_test_detail %>%
+  filter(truth == "not_null") %>%
+  filter(!is.na(shape)) %>%
+  filter(e_sigma == 0.5, not_null < 0.7, shape == 4) %>%
+  pull(plot_uid) %>%
+  show_plot()
+```
+
+```{r}
+mixed_test_detail %>%
+  filter(truth == "not_null") %>%
+  filter(!is.na(a)) %>%
+  mutate(a = factor(a), b = factor(b), n = factor(n)) %>%
+  group_by(a, b, n) %>%
+  summarise(rate = mean(not_null > 0.5)) %>%
+  ggplot() +
+  geom_point(aes(b, rate, col = n)) +
+  geom_line(aes(b, rate, col = n, group = n)) +
+  facet_wrap(~a, labeller = label_both) +
+  ggtitle("For residual plots with heteroskedasticity visual features", subtitle = "The accuracy of predicting not null is") +
+  xlab("b") +
+  ylab("Accuracy") +
+  ylim(c(0, 1))
+```
+
+```{r}
+mixed_test_detail %>%
+  filter(truth == "not_null") %>%
+  filter(!is.na(a)) %>%
+  ggplot() +
+  geom_boxplot(aes(factor(b), not_null), outlier.alpha = 0) +
+  geom_jitter(aes(factor(b), not_null), alpha = 0.3, height = 0, width = 0.2) +
+  ggtitle("For residual plots with heteroskedasticity visual features", subtitle = "The predicted probability of not null is") +
+  facet_wrap(~a, labeller = label_both) +
+  xlab("b") +
+  ylab("Predicted probability")
+```
+
+The model predicts the following plots ($b = 64$) with $\hat{p} < 50\%$.
+
+```{r}
+mixed_test_detail %>%
+  filter(truth == "not_null") %>%
+  filter(!is.na(a)) %>% 
+  filter(b == 64, not_null < 0.5) %>%
+  pull(plot_uid) %>%
+  map(~show_plot(.x))
+```
+
+```{r}
+mixed_test_detail %>%
+  filter(truth == "not_null") %>%
+  filter(!is.na(df)) %>%
+  ggplot() +
+  geom_boxplot(aes(factor(e_sigma), not_null), outlier.alpha = 0) +
+  geom_jitter(aes(factor(e_sigma), not_null), alpha = 0.3, height = 0, width = 0.2) +
+  ggtitle("For residual plots with non-normal visual features", subtitle = "The predicted probability of not null is") +
+  facet_wrap(~e_dist) +
+  xlab("sigma") +
+  ylab("Predicted probability")
+```
+
+```{r}
+mixed_test_detail %>%
+  filter(truth == "not_null") %>%
+  filter(!is.na(df)) %>%
+  filter(e_dist == "t") %>%
+  ggplot() +
+  geom_boxplot(aes(factor(df), not_null), outlier.alpha = 0) +
+  geom_jitter(aes(factor(df), not_null), alpha = 0.3, height = 0, width = 0.2) +
+  ggtitle("For residual plots with non-normal visual features", subtitle = "The predicted probability of not null is") +
+  facet_wrap(~e_sigma, labeller = label_both) +
+  xlab("degree of freedom") +
+  ylab("Predicted probability")
+```
+
+## Visual experiments
+
+```{r}
+vi_lineup <- readRDS(here::here("data/shared/vi_lineup.rds"))
+library(visage)
+```
+
+```{r}
+visual_poly_test_set <- flow_images_from_directory(here::here("data/shared/experiments/polynomial"), 
+                                                   target_size = c(224L, 224L),
+                                                   shuffle = FALSE)
+
+visual_poly_test_pred <- as_tibble(as.data.frame(mixed_mod$predict(visual_poly_test_set)))
+names(visual_poly_test_pred) <- c("not_null", "null")
+visual_poly_test_pred <- visual_poly_test_pred %>%
+  mutate(truth = "not_null") %>%
+  mutate(pred = c("not_null", "null")[(null > not_null) + 1]) %>%
+  mutate(truth = factor(truth, levels = c("not_null", "null")), pred = factor(pred))
+
+accuracy(visual_poly_test_pred, 
+         truth = truth, 
+         estimate = pred) %>%
+  kbl("html", col.names = c("Metric", "Estimator", "Estimate")) %>%
+  kable_minimal() %>%
+  kable_styling(full_width = F)
+
+conf_mat(visual_poly_test_pred,
+         truth = truth,
+         estimate = pred) %>% 
+  .[["table"]] %>%
+  `rownames<-`(c("Not null", "Null")) %>%
+  kbl("html", col.names = c("Not null", "Null")) %>%
+  kable_minimal(full_width = F)
+
+visual_heter_test_set <- flow_images_from_directory(here::here("data/shared/experiments/heteroskedasticity"), 
+                                                    target_size = c(224L, 224L),
+                                                    shuffle = FALSE)
+
+visual_heter_test_pred <- as_tibble(as.data.frame(mixed_mod$predict(visual_heter_test_set)))
+names(visual_heter_test_pred) <- c("not_null", "null")
+visual_heter_test_pred <- visual_heter_test_pred %>%
+  mutate(truth = "not_null") %>%
+  mutate(pred = c("not_null", "null")[(null > not_null) + 1]) %>%
+  mutate(truth = factor(truth, levels = c("not_null", "null")), pred = factor(pred))
+
+accuracy(visual_heter_test_pred, 
+         truth = truth, 
+         estimate = pred) %>%
+  kbl("html", col.names = c("Metric", "Estimator", "Estimate")) %>%
+  kable_minimal() %>%
+  kable_styling(full_width = F)
+
+
+conf_mat(visual_heter_test_pred,
+         truth = truth,
+         estimate = pred) %>% 
+  .[["table"]] %>%
+  `rownames<-`(c("Not null", "Null")) %>%
+  kbl("html", col.names = c("Not null", "Null")) %>%
+  kable_minimal(full_width = F)
+```
+
+```{r}
+visual_pred <- bind_rows(visual_poly_test_pred %>%
+                           mutate(unique_lineup_id = gsub(".*/(.*).png", "\\1", visual_poly_test_set$filenames)),
+                         visual_heter_test_pred %>%
+                           mutate(unique_lineup_id = gsub(".*/(.*).png", "\\1", visual_heter_test_set$filenames)))
+
+visual_pred <- vi_survey %>%
+  group_by(unique_lineup_id) %>%
+  summarise(across(everything(), first)) %>%
+  right_join(visual_pred)
+```
+
+```{r}
+visual_pred %>%
+  mutate(diff_decision = (p_value <= 0.05) != (pred == "not_null")) %>%
+  mutate(diff_decision = c("Same", "Different")[diff_decision + 1]) %>%
+  ggplot() +
+  ggbeeswarm::geom_quasirandom(aes(log(effect_size), c("Null", "Not null")[(pred == "not_null") + 1], col = diff_decision), 
+                               groupOnX = FALSE,
+                               alpha = 0.6) +
+  facet_wrap(~type, ncol = 1, scales = "free_x") +
+  # scale_x_sqrt() +
+  ylab("Prediction") +
+  xlab("Log of effect size") +
+  labs(col = "") +
+  scale_color_manual(values = c("red", "gray")) +
+  ggtitle("Prediction VS visual test")
+```
+
+```{r}
+visual_pred %>%
+  mutate(diff_decision = (p_value <= 0.05) != (pred == "not_null")) %>%
+  mutate(diff_decision = c("Same", "Different")[diff_decision + 1]) %>%
+  filter(diff_decision == "Different", pred == "null") %>%
+  pull(unique_lineup_id) %>%
+  map(~show_plot(.x))
+```
+

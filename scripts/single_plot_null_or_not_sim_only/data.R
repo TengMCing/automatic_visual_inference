@@ -115,7 +115,7 @@ rand_normal_raw_x <- rand_normal(sigma = 0.3)
 rand_normal_x <- closed_form(~stand_dist(rand_normal_raw_x))
 rand_lognormal_raw_x <- rand_lognormal(sigma = 0.6)
 rand_lognormal_x <- closed_form(~stand_dist(rand_lognormal_raw_x/3 - 1))
-rand_discrete_x <- rand_uniform_d(k = 5, even = TRUE)
+rand_discrete_x <- rand_uniform_d(-1, 1, k = 5, even = TRUE)
 
 get_x_var <- function(dist_name) {
   switch(as.character(dist_name),

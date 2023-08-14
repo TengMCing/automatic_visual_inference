@@ -233,18 +233,20 @@ conf_mat(heter_on_poly_pred,
 vi_lineup <- readRDS(here::here("data/shared/vi_lineup.rds"))
 library(visage)
 
-for (lineup in vi_lineup) {
-  this_plot <- lineup$data %>%
-    filter(null == FALSE) %>%
-    VI_MODEL$plot(theme = theme_light(base_size = 11/5), 
-                  remove_axis = TRUE, 
-                  remove_legend = TRUE, 
-                  remove_grid_line = TRUE)
-  
-  ggsave(glue::glue(here::here("data/shared/experiments/{lineup$metadata$type}/not_null/{lineup$metadata$name}.png")), 
-         this_plot, 
-         width = 7/5, 
-         height = 7/4)
+if (!file.exists(here::here("data/shared/experiments"))) {
+  for (lineup in vi_lineup) {
+    this_plot <- lineup$data %>%
+      filter(null == FALSE) %>%
+      VI_MODEL$plot(theme = theme_light(base_size = 11/5), 
+                    remove_axis = TRUE, 
+                    remove_legend = TRUE, 
+                    remove_grid_line = TRUE)
+    
+    ggsave(glue::glue(here::here("data/shared/experiments/{lineup$metadata$type}/not_null/{lineup$metadata$name}.png")), 
+           this_plot, 
+           width = 7/5, 
+           height = 7/4)
+  }  
 }
 
 visual_poly_test_set <- flow_images_from_directory(here::here("data/shared/experiments/polynomial"), 
@@ -295,5 +297,16 @@ visual_pred <- vi_survey %>%
 
 visual_pred %>%
   count(pred == "not_null", p_value <= 0.05)
+
+jitter_pos <- position_jitter(width = 0)
+
+visual_pred %>%
+  mutate(diff_decision = (p_value <= 0.05) != (pred == "not_null")) %>%
+  ggplot() +
+  ggbeeswarm::geom_quasirandom(aes(effect_size, pred == "not_null", col = diff_decision), 
+                               groupOnX = FALSE,
+                               alpha = 0.6) +
+  facet_wrap(~type, ncol = 1, scales = "free_x") +
+  scale_x_log10()
 
 
