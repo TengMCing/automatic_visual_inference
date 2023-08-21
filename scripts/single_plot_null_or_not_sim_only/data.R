@@ -256,7 +256,8 @@ for (i in 1:nrow(model_parameters)) {
 }
 
 
-# non_normal --------------------------------------------------------------
+# Ar1 ---------------------------------------------------------------------
+
 
 model_parameters <- expand.grid(x_dist = c("uniform", 
                                            "normal", 
