@@ -84,7 +84,9 @@ csv_dir = os.path.join(project_dir,
                        "mixed_multiclass.csv")
 callbacks = keras_app_api.init_callbacks(log_dir=log_dir,
                                          patience=20,
-                                         update_freq=100,
+                                         update_freq=20,
+                                         reduce_lr_on_plateau=True,
+                                         factor=0.5,
                                          csv_filename=csv_dir)
 
 tuner.search(x=train_set, 
