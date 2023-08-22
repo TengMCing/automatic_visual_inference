@@ -1,0 +1,25 @@
+2023-08-22 05:00:55.640541: I tensorflow/core/util/port.cc:110] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2023-08-22 05:00:59.456001: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2023-08-22 05:01:35.808237: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+
+API status:
+        Using Python: 3.11.3 (main, Apr 19 2023, 23:54:32) [GCC 11.2.0]
+        Using tensorflow: 2.12.0
+        Using keras: 2.12.0
+        Available GPUs: [PhysicalDevice(name='/physical_device:GPU:0', 
+device_type='GPU')]
+
+
+Found 113585 images belonging to 2 classes.
+Found 28396 images belonging to 2 classes.
+Traceback (most recent call last):
+  File "/fs04/sk54/patrickli/automatic_visual_inference/scripts/single_plot_null_or_not_sim_only/single_plot_mixed_tune.py", line 60, in <module>
+    tuner = keras_tuner.BayesianOptimization(hypermodel=build_model,
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/sk54/wlii0039/miniconda/conda/envs/tf/lib/python3.11/site-packages/keras_tuner/tuners/bayesian.py", line 380, in __init__
+    oracle = BayesianOptimizationOracle(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/sk54/wlii0039/miniconda/conda/envs/tf/lib/python3.11/site-packages/keras_tuner/tuners/bayesian.py", line 110, in __init__
+    raise ImportError(
+ImportError: Please install scikit-learn (sklearn) before using the `BayesianOptimization` with `pip install keras-tuner[bayesian]`.

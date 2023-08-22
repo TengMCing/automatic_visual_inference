@@ -1,0 +1,33 @@
+2023-08-22 05:10:18.070100: I tensorflow/core/util/port.cc:110] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2023-08-22 05:10:21.828872: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2023-08-22 05:10:54.996273: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+
+API status:
+        Using Python: 3.11.3 (main, Apr 19 2023, 23:54:32) [GCC 11.2.0]
+        Using tensorflow: 2.12.0
+        Using keras: 2.12.0
+        Available GPUs: [PhysicalDevice(name='/physical_device:GPU:0', 
+device_type='GPU')]
+
+
+Found 113585 images belonging to 2 classes.
+Found 28396 images belonging to 2 classes.
+2023-08-22 05:12:21.041444: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1635] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 78903 MB memory:  -> device: 0, name: NVIDIA A100 80GB PCIe, pci bus id: 0000:65:00.0, compute capability: 8.0
+Search space summary
+Default search space size: 4
+units (Choice)
+{'default': 128, 'conditions': [], 'values': [128, 256, 512, 1024], 'ordered': True}
+l1 (Float)
+{'default': 1e-05, 'conditions': [], 'min_value': 1e-05, 'max_value': 0.1, 'step': 2, 'sampling': 'log'}
+l2 (Float)
+{'default': 1e-05, 'conditions': [], 'min_value': 1e-05, 'max_value': 0.1, 'step': 2, 'sampling': 'log'}
+dropout (Float)
+{'default': 0.1, 'conditions': [], 'min_value': 0.1, 'max_value': 0.7, 'step': 0.1, 'sampling': 'linear'}
+Traceback (most recent call last):
+  File "/fs04/sk54/patrickli/automatic_visual_inference/scripts/single_plot_null_or_not_sim_only/single_plot_mixed_tune.py", line 81, in <module>
+    callbacks = keras_app_api.init_callbacks(log_dir=log_dir,
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fs04/sk54/patrickli/automatic_visual_inference/scripts/shared/keras_applications_api.py", line 693, in init_callbacks
+    os.mkdir(os.path.dirname(log_dir))
+FileNotFoundError: [Errno 2] No such file or directory: '/fs04/sk54/patrickli/automatic_visual_inference/hyperparameter_tuning/logs/single_plot_null_or_not_sim_only'
