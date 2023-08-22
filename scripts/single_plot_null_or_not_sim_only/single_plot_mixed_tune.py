@@ -40,7 +40,11 @@ def build_model(hp):
     model_output = base_model(model_output)
     
     # Define the classifier
-    model_output = keras.layers.GlobalAveragePooling2D()(model_output)
+    if hp.Boolean('max_pooling'):
+        model_output = keras.layers.GlobalMaxPooling2D()(model_output)
+    else:
+        model_output = keras.layers.GlobalAveragePooling2D()(model_output)
+        
     model_output = keras.layers.Dense(
         hp.Choice('units', [128, 256, 512, 1024]),
         kernel_regularizer=keras.regularizers.L1L2(l1=hp.Float('l1', min_value=1e-5, max_value=1e-1, step=2, sampling='log'), 
@@ -58,7 +62,7 @@ def build_model(hp):
     return this_model
   
 tuner = keras_tuner.BayesianOptimization(hypermodel=build_model,
-                                         objective='val_accuracy',
+                                         objective='val_categorical_accuracy',
                                          max_trials=10,
                                          executions_per_trial=1,
                                          overwrite=True,
