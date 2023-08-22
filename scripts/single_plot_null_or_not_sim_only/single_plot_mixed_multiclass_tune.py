@@ -18,7 +18,7 @@ else:
 train_dir = os.path.join(project_dir,
                          "data",
                          "single_plot_null_or_not_sim_only",
-                         "mixed",
+                         "mixed_multiclass",
                          "train")
 
 train_set, val_set = keras_app_api.flow_images_from_dir(directory=train_dir,
@@ -52,7 +52,7 @@ def build_model(hp):
     model_output = keras.layers.BatchNormalization(fused=False)(model_output)
     model_output = keras.layers.Dropout(hp.Float('dropout', min_value=0.1, max_value=0.7, step=0.1))(model_output)
     model_output = keras.layers.Activation(activation="relu")(model_output)
-    model_output = keras.layers.Dense(2, activation="softmax")(model_output)
+    model_output = keras.layers.Dense(4, activation="softmax")(model_output)
     this_model = keras.Model(model_input, model_output)
     
     # Compile the model
@@ -67,7 +67,7 @@ tuner = keras_tuner.BayesianOptimization(hypermodel=build_model,
                                          executions_per_trial=1,
                                          overwrite=True,
                                          directory="hyperparameter_tuning/tuner/single_plot_null_or_not_sim_only",
-                                         project_name='mixed')
+                                         project_name='mixed_multiclass')
 
 # Check search space
 tuner.search_space_summary()
@@ -76,12 +76,12 @@ log_dir = os.path.join(project_dir,
                        "hyperparameter_tuning",
                        "logs",
                        "single_plot_null_or_not_sim_only",
-                       "mixed")
+                       "mixed_multiclass")
 csv_dir = os.path.join(project_dir,
                        "hyperparameter_tuning",
                        "history",
                        "single_plot_null_or_not_sim_only",
-                       "mixed.csv")
+                       "mixed_multiclass.csv")
 callbacks = keras_app_api.init_callbacks(log_dir=log_dir,
                                          patience=20,
                                          update_freq=100,
@@ -100,5 +100,5 @@ model_dir = os.path.join(project_dir,
                          "hyperparameter_tuning",
                          "models",
                          "single_plot_null_or_not_sim_only",
-                         "mixed")
+                         "mixed_multiclass")
 best_model.save(model_dir)
