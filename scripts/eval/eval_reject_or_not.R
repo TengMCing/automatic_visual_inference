@@ -54,11 +54,13 @@ mixed_test_pred <- mixed_test_pred %>%
   left_join(vi_survey %>% group_by(unique_lineup_id) %>% summarise(across(everything(), first))) %>%
   mutate(effect_size = ifelse(answer == plot, effect_size, 0))
 
+library(ggbeeswarm)
+
 mixed_test_pred %>%
   mutate(wrong = pred != truth) %>%
   mutate(wrong = c("Same", "Different")[wrong + 1]) %>%
   ggplot() +
-  ggbeeswarm::geom_quasirandom(aes(effect_size, pred, col = wrong), groupOnX = FALSE) +
+  geom_quasirandom(aes(effect_size, pred, col = wrong), groupOnX = FALSE) +
   facet_wrap(~type, ncol = 1, scales = "free_x") +
   labs(col = "") +
   scale_x_sqrt() +
@@ -73,3 +75,53 @@ mixed_test_pred %>%
   mutate(filename = paste0(unique_lineup_id, "_", plot)) %>%
   pull(filename) %>%
   map(~show_plot(.x))
+
+mixed_test_pred %>%
+  mutate(wrong = pred != truth) %>%
+  mutate(wrong = c("Same", "Different")[wrong + 1]) %>%
+  filter(type == "heteroskedasticity") %>%
+  filter(wrong == "Different") %>%
+  filter(pred == "not_reject") %>%
+  mutate(filename = paste0(unique_lineup_id, "_", plot)) %>%
+  pull(filename) %>%
+  map(~show_plot(.x))
+
+show_plot("heter_537_17")
+
+
+# Confindently reject, but wrong
+mixed_test_pred %>%
+  mutate(wrong = pred != truth) %>%
+  mutate(wrong = c("Same", "Different")[wrong + 1]) %>%
+  filter(wrong == "Different") %>%
+  arrange(desc(reject)) %>%
+  head() %>%
+  mutate(filename = paste0(unique_lineup_id, "_", plot)) %>%
+  pull(filename) %>%
+  map(~show_plot(.x))
+
+
+# Conventional test -------------------------------------------------------
+
+vi_lineup <- readRDS(here::here("data/shared/vi_lineup.rds"))
+
+mixed_test_pred$conventional_p_value <- map_dbl(1:nrow(mixed_test_pred), function(i) {
+  vi_lineup[[mixed_test_pred$unique_lineup_id[i]]]$data %>%
+    filter(k == mixed_test_pred$plot[i]) %>%
+    pull(p_value) %>%
+    .[1]
+})
+
+mixed_test_pred %>%
+  mutate(wrong = (reject > 0.5) != (conventional_p_value < 0.05)) %>%
+  mutate(wrong = c("Same", "Different")[wrong + 1]) %>%
+  ggplot() +
+  geom_quasirandom(aes(effect_size, pred, col = wrong), groupOnX = FALSE) +
+  facet_wrap(~type, ncol = 1, scales = "free_x") +
+  labs(col = "") +
+  scale_x_sqrt() +
+  ylab("Prediction")
+
+mixed_test_pred %>%
+  ggplot()
+  count(pred, conventional_p_value < 0.05)

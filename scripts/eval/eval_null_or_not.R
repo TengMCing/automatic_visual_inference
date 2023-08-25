@@ -300,12 +300,14 @@ visual_pred %>%
 
 jitter_pos <- position_jitter(width = 0)
 
+library(ggbeeswarm)
+
 visual_pred %>%
   mutate(diff_decision = (p_value <= 0.05) != (pred == "not_null")) %>%
   ggplot() +
-  ggbeeswarm::geom_quasirandom(aes(effect_size, pred == "not_null", col = diff_decision), 
-                               groupOnX = FALSE,
-                               alpha = 0.6) +
+  geom_quasirandom(aes(effect_size, pred == "not_null", col = diff_decision),
+                       groupOnX = FALSE,
+                       alpha = 0.6) +
   facet_wrap(~type, ncol = 1, scales = "free_x") +
   scale_x_log10()
 

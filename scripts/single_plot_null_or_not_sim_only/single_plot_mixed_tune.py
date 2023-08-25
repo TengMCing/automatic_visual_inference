@@ -63,9 +63,9 @@ def build_model(hp):
   
 tuner = keras_tuner.BayesianOptimization(hypermodel=build_model,
                                          objective='val_categorical_accuracy',
-                                         max_trials=10,
+                                         max_trials=20,
                                          executions_per_trial=1,
-                                         overwrite=True,
+                                         overwrite=False,
                                          directory="hyperparameter_tuning/tuner/single_plot_null_or_not_sim_only",
                                          project_name='mixed')
 

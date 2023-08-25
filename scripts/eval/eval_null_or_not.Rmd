@@ -49,7 +49,9 @@ meta_data <- readRDS(here::here("data/single_plot_null_or_not_sim_only/meta.rds"
   as_tibble()
 
 library(kableExtra)
+library(ggbeeswarm)
 ```
+
 
 # Mixed model
 
@@ -125,7 +127,6 @@ mixed_test_detail %>%
   ylim(c(0, 1))
 ```
 
-
 ```{r}
 mixed_test_detail %>%
   filter(truth == "not_null") %>%
@@ -149,6 +150,7 @@ mixed_test_detail %>%
   pull(plot_uid) %>%
   show_plot()
 ```
+
 
 ```{r}
 mixed_test_detail %>%
@@ -294,12 +296,12 @@ visual_pred <- vi_survey %>%
 
 ```{r}
 visual_pred %>%
-  mutate(diff_decision = (p_value <= 0.05) != (pred == "not_null")) %>%
+  mutate(diff_decision = (p_value <= 0.05) != (not_null > 0.5)) %>%
   mutate(diff_decision = c("Same", "Different")[diff_decision + 1]) %>%
   ggplot() +
-  ggbeeswarm::geom_quasirandom(aes(log(effect_size), c("Null", "Not null")[(pred == "not_null") + 1], col = diff_decision), 
-                               groupOnX = FALSE,
-                               alpha = 0.6) +
+  geom_quasirandom(aes(log(effect_size), c("Null", "Not null")[(not_null > 0.5) + 1], col = diff_decision), 
+                       groupOnX = FALSE,
+                       alpha = 0.6) +
   facet_wrap(~type, ncol = 1, scales = "free_x") +
   # scale_x_sqrt() +
   ylab("Prediction") +
@@ -318,3 +320,38 @@ visual_pred %>%
   map(~show_plot(.x))
 ```
 
+```{r}
+visual_pred %>%
+  mutate(diff_decision = (conventional_p_value <= 0.05) != (not_null > 0.5)) %>%
+  mutate(diff_decision = c("Same", "Different")[diff_decision + 1]) %>%
+  ggplot() +
+  geom_quasirandom(aes(log(effect_size), c("Null", "Not null")[(not_null > 0.5) + 1], col = diff_decision), 
+                       groupOnX = FALSE,
+                       alpha = 0.6) +
+  facet_wrap(~type, ncol = 1, scales = "free_x") +
+  # scale_x_sqrt() +
+  ylab("Prediction") +
+  xlab("Log of effect size") +
+  labs(col = "") +
+  scale_color_manual(values = c("red", "gray")) +
+  ggtitle("Prediction VS conventional test")
+```
+
+
+```{r}
+visual_pred %>% 
+  filter(effect_size > 0, conventional_p_value > 0.05)
+```
+
+
+feed 19 null plots and one data plot to the model, compare the prediction and see if the data plot has the greatest value
+
+bench model -> only one shape (e.g. U shape) -> check attention map
+
+small effect size -> attention map
+large effect size -> attention map
+
+global heat map -> summarize heat map for all the prediction
+check other types of heat map
+
+submit multiple models -> random init 
