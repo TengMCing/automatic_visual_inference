@@ -63,7 +63,7 @@ def build_model(hp):
   
 tuner = keras_tuner.BayesianOptimization(hypermodel=build_model,
                                          objective='val_categorical_accuracy',
-                                         max_trials=20,
+                                         max_trials=30,
                                          executions_per_trial=1,
                                          overwrite=False,
                                          directory="hyperparameter_tuning/tuner/single_plot_null_or_not_sim_only",
@@ -83,10 +83,11 @@ csv_dir = os.path.join(project_dir,
                        "single_plot_null_or_not_sim_only",
                        "mixed.csv")
 callbacks = keras_app_api.init_callbacks(log_dir=log_dir,
-                                         patience=20,
+                                         patience=10,
                                          update_freq=20,
                                          reduce_lr_on_plateau=True,
                                          factor=0.5,
+                                         lr_patience=5,
                                          csv_filename=csv_dir)
 
 tuner.search(x=train_set, 
