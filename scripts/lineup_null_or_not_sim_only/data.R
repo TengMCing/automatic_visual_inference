@@ -75,6 +75,8 @@ draw_plots <- function(violation, not_null, null, n, meta_vector) {
       plot_dat <- map(1:SAMPLE_PER_PARAMETER[[data_type]], 
                       ~mod[[response]]$gen_lineup(n))
       
+      pos <- map_dbl(plot_dat, ~.x %>% filter(null == FALSE) %>% pull(k) %>% .[1])
+      
       # Speed up the plot drawing
       num_plots <- length(plot_dat)
       foreach(this_dat = plot_dat, 
@@ -92,11 +94,12 @@ draw_plots <- function(violation, not_null, null, n, meta_vector) {
                        height = 7)
               }
       
-      for (.unused in 1:num_plots) {
+      for (i in 1:num_plots) {
         PLOT_UID <<- PLOT_UID + 1
         PLOT_META <<- PLOT_META %>%
           bind_rows(c(plot_uid = PLOT_UID, 
                       meta_vector, 
+                      k = pos[i],
                       data_type = data_type, 
                       response = response))
       }
