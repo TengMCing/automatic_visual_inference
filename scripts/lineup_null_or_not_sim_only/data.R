@@ -9,7 +9,6 @@ if (!requireNamespace("visage", quietly = TRUE)) {
   remotes::install_github("TengMCing/visage")
 }
 
-
 library(tidyverse)
 library(visage)
 

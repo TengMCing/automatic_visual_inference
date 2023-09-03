@@ -235,6 +235,9 @@ library(visage)
 
 if (!file.exists(here::here("data/shared/experiments"))) {
   for (lineup in vi_lineup) {
+    
+    if (lineup$metadata$effect_size == 0) next
+    
     this_plot <- lineup$data %>%
       filter(null == FALSE) %>%
       VI_MODEL$plot(theme = theme_light(base_size = 11/5), 
@@ -242,11 +245,41 @@ if (!file.exists(here::here("data/shared/experiments"))) {
                     remove_legend = TRUE, 
                     remove_grid_line = TRUE)
     
-    ggsave(glue::glue(here::here("data/shared/experiments/{lineup$metadata$type}/not_null/{lineup$metadata$name}.png")), 
+    pos <- lineup$data %>%
+      filter(null == FALSE) %>%
+      pull(k) %>%
+      .[1]
+    
+    ggsave(glue::glue(here::here("data/shared/experiments/{lineup$metadata$type}/not_null/{lineup$metadata$name}_{pos}.png")), 
            this_plot, 
            width = 7/5, 
            height = 7/4)
-  }  
+  }
+  
+  for (lineup in vi_lineup) {
+    
+    for (i in 1:20) {
+      
+      null_flag <- lineup$data %>% 
+        filter(k == i) %>% 
+        pull(null) %>%
+        .[1]
+      
+      if (lineup$metadata$effect_size > 0 && null_flag == FALSE) next
+      
+      this_plot <- lineup$data %>% 
+        filter(k == i) %>%
+        VI_MODEL$plot(theme = theme_light(base_size = 11/5), 
+                      remove_axis = TRUE, 
+                      remove_legend = TRUE, 
+                      remove_grid_line = TRUE)
+      
+      ggsave(glue::glue(here::here("data/shared/experiments/{lineup$metadata$type}/null/{lineup$metadata$name}_{i}.png")), 
+             this_plot, 
+             width = 7/5, 
+             height = 7/4)
+    }
+  }
 }
 
 visual_poly_test_set <- flow_images_from_directory(here::here("data/shared/experiments/polynomial"), 

@@ -25,3 +25,7 @@ scripts/single_plot_null_or_not_sim_only/slurm-31121711.out
 scripts/single_plot_null_or_not_sim_only/slurm-31121713.out
 
 hyperparameter_tuning/tuner/
+
+gradcam/
+
+heatmap.rds
