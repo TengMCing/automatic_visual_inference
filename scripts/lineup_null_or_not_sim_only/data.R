@@ -4,6 +4,7 @@ if (!requireNamespace("tidyverse", quietly = TRUE)) install.packages("tidyverse"
 if (!requireNamespace("here", quietly = TRUE)) install.packages("here", repos = default_repo)
 if (!requireNamespace("glue", quietly = TRUE)) install.packages("glue", repos = default_repo)
 if (!requireNamespace("progress", quietly = TRUE)) install.packages("progress", repos = default_repo)
+if (!requireNamespace("doMC", quietly = TRUE)) install.packages("doMC", repos = default_repo)
 if (!requireNamespace("visage", quietly = TRUE)) {
   remotes::install_github("TengMCing/bandicoot")
   remotes::install_github("TengMCing/visage")
@@ -11,6 +12,15 @@ if (!requireNamespace("visage", quietly = TRUE)) {
 
 library(tidyverse)
 library(visage)
+
+# multicore ---------------------------------------------------------------
+
+library(doMC)
+library(foreach)
+
+registerDoMC()
+
+cat(glue::glue("{getDoParWorkers()} workers is used by `doMC`!"))
 
 set.seed(10086)
 
@@ -67,20 +77,20 @@ draw_plots <- function(violation, not_null, null, n, meta_vector) {
       
       # Speed up the plot drawing
       num_plots <- length(plot_dat)
-      
-      map2(plot_dat, (PLOT_UID + 1):(PLOT_UID + num_plots), function(this_dat, this_plot_id) {
-        this_plot <- this_dat %>%
-          VI_MODEL$plot_lineup(theme = theme_light(), 
-                               remove_axis = TRUE, 
-                               remove_legend = TRUE, 
-                               remove_grid_line = TRUE)
-        
-        # The lineup layout contains 4 rows and 5 cols
-        ggsave(glue::glue(here::here("data/lineup_null_or_not_sim_only/{violation}/{data_type}/{response}/{this_plot_id}.png")), 
-               this_plot, 
-               width = 7, 
-               height = 7)
-      })
+      foreach(this_dat = plot_dat, 
+              this_plot_id = (PLOT_UID + 1):(PLOT_UID + num_plots)) %dopar% {
+                this_plot <- this_dat %>%
+                  VI_MODEL$plot_lineup(theme = theme_light(), 
+                                       remove_axis = TRUE, 
+                                       remove_legend = TRUE, 
+                                       remove_grid_line = TRUE)
+                
+                # The lineup layout contains 4 rows and 5 cols
+                ggsave(glue::glue(here::here("data/lineup_null_or_not_sim_only/{violation}/{data_type}/{response}/{this_plot_id}.png")), 
+                       this_plot, 
+                       width = 7, 
+                       height = 7)
+              }
       
       for (i in 1:num_plots) {
         PLOT_UID <<- PLOT_UID + 1
