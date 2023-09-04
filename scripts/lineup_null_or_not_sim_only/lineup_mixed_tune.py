@@ -60,6 +60,8 @@ def build_model(hp):
     this_model.compile(keras.optimizers.legacy.Adam(learning_rate=hp.Float('learning_rate', min_value=1e-6, max_value=1e-1, step=2, sampling='log')),
                        loss="categorical_crossentropy",
                        metrics=["categorical_accuracy"])
+                       
+    print(this_model.summary())
     return this_model
   
 tuner = keras_tuner.BayesianOptimization(hypermodel=build_model,
