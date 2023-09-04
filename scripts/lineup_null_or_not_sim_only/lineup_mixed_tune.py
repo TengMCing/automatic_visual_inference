@@ -57,7 +57,7 @@ def build_model(hp):
     this_model = keras.Model(model_input, model_output)
     
     # Compile the model
-    this_model.compile(keras.optimizers.legacy.Adam(learning_rate=hp.Float('learning_rate', min_value=1e-6, max_value=1e-1, step=2, sampling='log')),
+    this_model.compile(keras.optimizers.legacy.Adam(learning_rate=hp.Float('learning_rate', min_value=1e-6, max_value=1e-2, step=2, sampling='log')),
                        loss="categorical_crossentropy",
                        metrics=["categorical_accuracy"])
                        
