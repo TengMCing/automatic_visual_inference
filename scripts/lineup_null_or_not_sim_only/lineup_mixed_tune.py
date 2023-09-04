@@ -25,7 +25,7 @@ train_set, val_set = keras_app_api.flow_images_from_dir(directory=train_dir,
                                                         model_name="vgg16",
                                                         class_mode="categorical",
                                                         batch_size=32,
-                                                        target_size=(224*5, 224*5))
+                                                        target_size=(224*2, 224*2))
                                                         
                                                         
                                                         
@@ -33,10 +33,10 @@ def build_model(hp):
     
     # Get base model
     vgg16 = keras_app_api.get_constructor("vgg16")
-    base_model = vgg16(include_top=False, weights=None, input_shape=(224*5, 224*5, 3))
+    base_model = vgg16(include_top=False, weights=None, input_shape=(224*2, 224*2, 3))
     
     # Define the base layers
-    model_input = keras.layers.Input(shape=(224*5, 224*5, 3))
+    model_input = keras.layers.Input(shape=(224*2, 224*2, 3))
     model_output = keras_app_api.preprocess_input(model_input, model_name="vgg16")
     model_output = base_model(model_output)
     
