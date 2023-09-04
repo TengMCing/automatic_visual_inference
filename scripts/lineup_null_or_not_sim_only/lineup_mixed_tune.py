@@ -36,7 +36,7 @@ def build_model(hp):
     base_model = vgg16(include_top=False, weights=None, input_shape=(224*5, 224*5, 3))
     
     # Define the base layers
-    model_input = keras.layers.Input(shape=keras_app_api.get_input_shape("vgg16"))
+    model_input = keras.layers.Input(shape=(224*5, 224*5, 3))
     model_output = keras_app_api.preprocess_input(model_input, model_name="vgg16")
     model_output = base_model(model_output)
     
