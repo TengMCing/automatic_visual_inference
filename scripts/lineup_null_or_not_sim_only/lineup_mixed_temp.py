@@ -81,10 +81,10 @@ callbacks = keras_app_api.init_callbacks(log_dir=log_dir,
                                          lr_patience=3,
                                          csv_filename=csv_dir)
 
-model.train(x=train_set, 
-             epochs=200, 
-             validation_data=val_set, 
-             callbacks=callbacks)
+model.fit(x=train_set,
+          epochs=200, 
+          validation_data=val_set, 
+          callbacks=callbacks)
 
 model_dir = os.path.join(project_dir,
                          "hyperparameter_tuning",
