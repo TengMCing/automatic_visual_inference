@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=LineupNullOrNotTrainJobMixed
+#SBATCH --job-name=LineupNullOrNotTrainJobMixedTemp
 #SBATCH --account=sk54
 #SBATCH --time=72:00:00
 #SBATCH --partition=gpu
