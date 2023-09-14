@@ -29,3 +29,5 @@ hyperparameter_tuning/tuner/
 gradcam/
 
 heatmap.rds
+
+data/lineup_null_or_not_sim_only/mixed/test/
