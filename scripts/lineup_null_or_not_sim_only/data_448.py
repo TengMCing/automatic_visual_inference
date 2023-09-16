@@ -26,7 +26,7 @@ size = 448, 448
 for infile in glob.glob(image_dir, recursive=True):
     file, ext = os.path.splitext(infile)
     with Image.open(infile) as im:
-        im.resize(size)
+        im = im.resize(size)
         final_file_name = file.replace("lineup_null_or_not_sim_only", "lineup_null_or_not_sim_only_448") + ".png"
         os.makedirs(os.path.dirname(final_file_name), exist_ok = True)
         im.save(final_file_name, "PNG")
