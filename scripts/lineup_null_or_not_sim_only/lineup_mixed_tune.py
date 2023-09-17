@@ -17,7 +17,7 @@ else:
 
 train_dir = os.path.join(project_dir,
                          "data",
-                         "lineup_null_or_not_sim_only",
+                         "lineup_null_or_not_sim_only_448",
                          "mixed",
                          "train")
 
@@ -70,7 +70,7 @@ tuner = keras_tuner.BayesianOptimization(hypermodel=build_model,
                                          executions_per_trial=1,
                                          overwrite=False,
                                          directory="hyperparameter_tuning/tuner/lineup_null_or_not_sim_only",
-                                         project_name='mixed')
+                                         project_name='mixed_448')
 
 # Check search space
 tuner.search_space_summary()
@@ -79,12 +79,12 @@ log_dir = os.path.join(project_dir,
                        "hyperparameter_tuning",
                        "logs",
                        "lineup_null_or_not_sim_only",
-                       "mixed")
+                       "mixed_448")
 csv_dir = os.path.join(project_dir,
                        "hyperparameter_tuning",
                        "history",
                        "lineup_null_or_not_sim_only",
-                       "mixed.csv")
+                       "mixed_448.csv")
 callbacks = keras_app_api.init_callbacks(log_dir=log_dir,
                                          patience=10,
                                          update_freq=20,
@@ -106,5 +106,5 @@ model_dir = os.path.join(project_dir,
                          "hyperparameter_tuning",
                          "models",
                          "lineup_null_or_not_sim_only",
-                         "mixed")
+                         "mixed_448")
 best_model.save(model_dir)
