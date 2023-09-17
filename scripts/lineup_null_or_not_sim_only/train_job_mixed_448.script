@@ -15,5 +15,5 @@ conda activate tf
 module load R/4.0.5
 
 cd ~/sk54/patrickli/automatic_visual_inference
-python scripts/lineup_null_or_not_sim_only/lineup_mixed_tune.py
+python scripts/lineup_null_or_not_sim_only/lineup_mixed_448.py
 
