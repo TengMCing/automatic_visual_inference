@@ -1,0 +1,19 @@
+#!/bin/bash
+#SBATCH --job-name=LineupNullOrNotDataJob112
+#SBATCH --account=sk54
+#SBATCH --time=24:00:00
+#SBATCH --partition=m3i
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=48G
+
+#SBATCH --mail-user=weihao.li@monash.edu
+#SBATCH --mail-type=BEGIN,END,FAIL
+
+source ~/.bashrc
+conda activate tf
+module load R/4.0.5
+cd ~/sk54/patrickli/automatic_visual_inference
+
+python scripts/lineup_null_or_not_sim_only/data_112.py
+

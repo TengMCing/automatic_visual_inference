@@ -17,7 +17,7 @@ else:
 
 train_dir = os.path.join(project_dir,
                          "data",
-                         "lineup_null_or_not_sim_only",
+                         "lineup_null_or_not_sim_only_224",
                          "mixed",
                          "train")
 

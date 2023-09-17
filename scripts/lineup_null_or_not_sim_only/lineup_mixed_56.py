@@ -17,7 +17,7 @@ else:
 
 train_dir = os.path.join(project_dir,
                          "data",
-                         "lineup_null_or_not_sim_only_112",
+                         "lineup_null_or_not_sim_only_56",
                          "mixed",
                          "train")
 
@@ -25,7 +25,7 @@ train_set, val_set = keras_app_api.flow_images_from_dir(directory=train_dir,
                                                         model_name="vgg16",
                                                         class_mode="categorical",
                                                         batch_size=32,
-                                                        target_size=(112, 112))
+                                                        target_size=(56, 56))
                                                         
                                                         
                                                         
@@ -33,10 +33,10 @@ def build_model(hp):
     
     # Get base model
     vgg16 = keras_app_api.get_constructor("vgg16")
-    base_model = vgg16(include_top=False, weights=None, input_shape=(112, 112, 3))
+    base_model = vgg16(include_top=False, weights=None, input_shape=(56, 56, 3))
     
     # Define the base layers
-    model_input = keras.layers.Input(shape=(112, 112, 3))
+    model_input = keras.layers.Input(shape=(56, 56, 3))
     model_output = keras_app_api.preprocess_input(model_input, model_name="vgg16")
     model_output = base_model(model_output)
     
@@ -70,7 +70,7 @@ tuner = keras_tuner.BayesianOptimization(hypermodel=build_model,
                                          executions_per_trial=1,
                                          overwrite=False,
                                          directory="hyperparameter_tuning/tuner/lineup_null_or_not_sim_only",
-                                         project_name='mixed_112')
+                                         project_name='mixed_56')
 
 # Check search space
 tuner.search_space_summary()
@@ -79,12 +79,12 @@ log_dir = os.path.join(project_dir,
                        "hyperparameter_tuning",
                        "logs",
                        "lineup_null_or_not_sim_only",
-                       "mixed_112")
+                       "mixed_56")
 csv_dir = os.path.join(project_dir,
                        "hyperparameter_tuning",
                        "history",
                        "lineup_null_or_not_sim_only",
-                       "mixed_112.csv")
+                       "mixed_56.csv")
 callbacks = keras_app_api.init_callbacks(log_dir=log_dir,
                                          patience=10,
                                          update_freq=20,
@@ -106,5 +106,5 @@ model_dir = os.path.join(project_dir,
                          "hyperparameter_tuning",
                          "models",
                          "lineup_null_or_not_sim_only",
-                         "mixed_112")
+                         "mixed_56")
 best_model.save(model_dir)
